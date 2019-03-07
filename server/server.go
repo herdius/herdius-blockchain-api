@@ -6,15 +6,19 @@ import (
 	"log"
 	"net/http"
 
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+
 	"github.com/herdius/herdius-core/accounts/account"
+	"github.com/herdius/herdius-core/supervisor/transaction"
 )
 
 func main() {
 	log.Println("Opening API")
-	// Launch HTTP server
 	LaunchServer()
-
-	// Instantiate AccountDetail()
 }
 
 // LaunchServer opens a standard REST server, through which chain- and transaction-based
@@ -29,7 +33,7 @@ func LaunchServer() {
 // tokens and returns an account Detail of the associated Herdius token address
 func GetAccount(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "\nRequest Pending\n")
-	acct, err := validateInput(w, r)
+	acct, err := validateGetAccount(w, r)
 	if err != nil {
 		fmt.Fprint(w, err)
 		return
@@ -39,7 +43,7 @@ func GetAccount(w http.ResponseWriter, r *http.Request) {
 
 func GetAccountPortfolio(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "\nRequest Pending\n")
-	acct, err := validateInput(w, r)
+	acct, err := validateGetAccount(w, r)
 	if err != nil {
 		fmt.Fprint(w, err)
 		return
@@ -47,7 +51,33 @@ func GetAccountPortfolio(w http.ResponseWriter, r *http.Request) {
 	log.Println("Account address:", acct.Address)
 }
 
-func validateInput(w http.ResponseWriter, r *http.Request) (*account.Account, error) {
+// PostTransaction is an http.Handler POST implementation that accepts valid transactions
+// and sends them to the memory pool for processing and batching
+func PostTransaction(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "\nTransaction Pending\n")
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	tx := &transaction.Tx{}
+	json.Unmarshal(body, &tx)
+	log.Println("tx.Message:", tx.Message)
+
+	if tx.Message == "" ||
+		tx.Assetcategory == "" ||
+		tx.Assetname == "" ||
+		len(tx.Value) == 0 ||
+		len(tx.Signature) == 0 ||
+		len(tx.Senderpubkey) == 0 ||
+		len(tx.Fee) == 0 {
+		fmt.Fprint(w, "Transaction was missing necessary values")
+		return
+	}
+
+	fmt.Fprint(w, "Transaction Posted\n")
+}
+
+func validateGetAccount(w http.ResponseWriter, r *http.Request) (*account.Account, error) {
 	params, ok := r.URL.Query()["address"]
 	if !ok || len(params[0]) < 1 {
 		log.Println("Url Param 'address' is missing")
@@ -60,4 +90,6 @@ func validateInput(w http.ResponseWriter, r *http.Request) (*account.Account, er
 
 	fmt.Fprint(w, "Request Valid\n")
 	return account, nil
+	http.HandleFunc("/posttx", PostTransaction)
+	log.Fatal(http.ListenAndServe(":80", nil))
 }
