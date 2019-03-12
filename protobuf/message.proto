@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package protobuf;
+option go_package="protobuf";
+
+option java_multiple_files = true;
+option java_package = "com.herdius.proto";
+option java_outer_classname = "HerdiusProto";
+
+// import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
+// option (gogoproto.equal_all) = true;
+// option (gogoproto.goproto_stringer_all) = false;
+// option (gogoproto.gostring_all) = true;
+// option (gogoproto.marshaler_all) = true;
+// option (gogoproto.sizer_all) = true;
+// option (gogoproto.stringer_all) = true;
+// option (gogoproto.unmarshaler_all) = true;
+// option (gogoproto.verbose_equal_all) = true;
+
+message Timestamp {
+    int64 seconds                   = 1;
+    int64 nanos                     = 2;
+}
+
+message BlockHeightRequest{
+    int64 block_height                  = 1;
+}
+
+message BlockResponse{
+    int64 block_height                  = 1;
+    // Time of block intialization
+    Timestamp time                  = 2;
+    int32 transactions              = 3;
+
+    // Supervisor herdius token address who created the block
+    string supervisor_address       = 4;
+    bytes state_root                 = 5;
+}

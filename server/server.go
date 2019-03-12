@@ -6,11 +6,13 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/herdius/herdius-blockchain-api/handler"
 	"github.com/herdius/herdius-core/accounts/account"
 )
 
 func main() {
 	log.Println("Opening API")
+
 	// Launch HTTP server
 	LaunchServer()
 
@@ -20,6 +22,7 @@ func main() {
 // LaunchServer opens a standard REST server, through which chain- and transaction-based
 // CRUD requests are performed
 func LaunchServer() {
+	http.HandleFunc("/block", handler.GetBlockByHeight)
 	http.HandleFunc("/getaccount", GetAccount)
 	http.HandleFunc("/getaccountportfolio", GetAccountPortfolio)
 	log.Fatal(http.ListenAndServe(":80", nil))
