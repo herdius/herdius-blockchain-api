@@ -65,6 +65,6 @@ func GetAccount(w http.ResponseWriter, r *http.Request) {
 
 	srv := service{}
 	account, _ := srv.GetAccountByAddress(address)
-	log.Info().Msgf("Processed for Account: %d", account.Address)
+	log.Info().Msgf("Processed for Account: %v", account.Address)
 	fmt.Fprint(w, account)
 }

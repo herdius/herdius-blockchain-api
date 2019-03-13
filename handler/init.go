@@ -67,6 +67,8 @@ func networkBuilder() *network.Builder {
 	opcode.RegisterMessageType(opcode.Opcode(1112), &protobuf.ConnectionMessage{})
 	opcode.RegisterMessageType(opcode.Opcode(1113), &protoplugin.BlockHeightRequest{})
 	opcode.RegisterMessageType(opcode.Opcode(1114), &protoplugin.BlockResponse{})
+	opcode.RegisterMessageType(opcode.Opcode(1115), &protoplugin.AccountRequest{})
+	opcode.RegisterMessageType(opcode.Opcode(1116), &protoplugin.AccountResponse{})
 
 	builder := network.NewBuilder()
 	builder.SetKeys(keys)
