@@ -37,3 +37,14 @@ message BlockResponse{
     string supervisor_address       = 4;
     bytes state_root                 = 5;
 }
+
+message AccountRequest {
+  string address = 1;
+}
+
+message AccountResponse {
+  string address = 1;
+  int64 nonce = 2;
+  int64 balance = 3;
+  string storage_root = 4;
+}

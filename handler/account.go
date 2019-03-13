@@ -4,17 +4,13 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strconv"
+	"time"
 
+	protoplugin "github.com/herdius/herdius-blockchain-api/protobuf"
 	"github.com/herdius/herdius-core/accounts/account"
 	"github.com/herdius/herdius-core/p2p/network"
 	"github.com/rs/zerolog/log"
 )
-
-// NB is a Network Builder
-var NB *NetworkBuilder
-
-type service struct{}
 
 // GetAccountByAddress broadcasts a request to the supervisor to retrieve
 // Account details for a given account address
@@ -37,18 +33,23 @@ func (s *service) GetAccountByAddress(accAddr string) (*account.Account, error) 
 	fmt.Println("checkpoint2")
 	ctx := network.WithSignMessage(context.Background(), true)
 
-	net.Broadcast(ctx, &protoplugin.AccountRequest{AccountAddress: accountAddr})
+	net.Broadcast(ctx, &protoplugin.AccountRequest{Address: accAddr})
+	time.Sleep(2 * time.Second)
 
-	acc := account.Account{}
+	acc := &account.Account{}
 	fmt.Println("checkpoint3")
-	return acc
+	return acc, nil
 }
 
-// TODO add details about wtf bootStrap() does
-func bootStrap(net *network.Network, peers []string) {
-	if len(peers) > 0 {
-		net.Bootstrap(peers...)
+type AccountMessagePlugin struct{ *network.Plugin }
+
+// Receive handles block specific received messages
+func (state *AccountMessagePlugin) Receive(ctx *network.PluginContext) error {
+	switch msg := ctx.Message().(type) {
+	case *protoplugin.AccountResponse:
+		log.Info().Msgf("Account Response: %v", msg)
 	}
+	return nil
 }
 
 // GetAccount handler called by http.HandleFunc
@@ -59,16 +60,11 @@ func GetAccount(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "Request invalid, 'address' param missing\n")
 	}
 
-	addressJSON := params[0]
-
-	address, err := strconv.ParseInt(addressJSON, 10, 64)
-
-	if err != nil {
-		log.Error().Msgf("Failed to Parse %v", err)
-	}
+	address := params[0]
+	fmt.Println("address:", address)
 
 	srv := service{}
-	account, _ := srv.GetAccount(height)
+	account, _ := srv.GetAccountByAddress(address)
 	log.Info().Msgf("Processed for Account: %d", account.Address)
-	fmt.Fprint(w, accountResponse)
+	fmt.Fprint(w, account)
 }
