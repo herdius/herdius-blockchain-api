@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	protoplugin "github.com/herdius/herdius-blockchain-api/protobuf"
-	"github.com/herdius/herdius-core/blockchain/protobuf"
+	blockProtobuf "github.com/herdius/herdius-core/blockchain/protobuf" // fix me
 	"github.com/herdius/herdius-core/p2p/crypto"
 	keystore "github.com/herdius/herdius-core/p2p/key"
 
@@ -64,7 +64,7 @@ func networkBuilder() *network.Builder {
 		PubKey:     pubKey,
 	}
 
-	opcode.RegisterMessageType(opcode.Opcode(1112), &protobuf.ConnectionMessage{})
+	opcode.RegisterMessageType(opcode.Opcode(1112), &blockProtobuf.ConnectionMessage{})
 	opcode.RegisterMessageType(opcode.Opcode(1113), &protoplugin.BlockHeightRequest{})
 	opcode.RegisterMessageType(opcode.Opcode(1114), &protoplugin.BlockResponse{})
 	opcode.RegisterMessageType(opcode.Opcode(1115), &protoplugin.AccountRequest{})
@@ -77,6 +77,7 @@ func networkBuilder() *network.Builder {
 	// // Register peer discovery plugin.
 	builder.AddPlugin(new(discovery.Plugin))
 	builder.AddPlugin(new(BlockMessagePlugin))
+	builder.AddPlugin(new(AccountMessagePlugin))
 	return builder
 
 }

@@ -17,6 +17,5 @@ func main() {
 func LaunchServer() {
 	http.HandleFunc("/block", handler.GetBlockByHeight)
 	http.HandleFunc("/account", handler.GetAccount)
-	//http.HandleFunc("/accountportfolio", handler.GetAccountPortfolio)
 	log.Fatal(http.ListenAndServe(":80", nil))
 }

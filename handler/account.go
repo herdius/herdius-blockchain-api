@@ -15,7 +15,6 @@ import (
 // GetAccountByAddress broadcasts a request to the supervisor to retrieve
 // Account details for a given account address
 func (s *service) GetAccountByAddress(accAddr string) (*account.Account, error) {
-	fmt.Println("entering service.GetAccountByAddress")
 	net, err := NB.builder.Build()
 	if err != nil {
 		log.Error().Msgf("Failed to build network:%v", err)
@@ -24,20 +23,17 @@ func (s *service) GetAccountByAddress(accAddr string) (*account.Account, error) 
 	go net.Listen()
 	defer net.Close()
 
-	fmt.Println("checkpoint1")
 	supervisorAddress := "tcp://localhost:3000"
 	supervisorAdds := make([]string, 1)
 	supervisorAdds = append(supervisorAdds, supervisorAddress)
 	bootStrap(net, supervisorAdds)
 
-	fmt.Println("checkpoint2")
 	ctx := network.WithSignMessage(context.Background(), true)
 
 	net.Broadcast(ctx, &protoplugin.AccountRequest{Address: accAddr})
 	time.Sleep(2 * time.Second)
 
 	acc := &account.Account{}
-	fmt.Println("checkpoint3")
 	return acc, nil
 }
 
@@ -61,10 +57,8 @@ func GetAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	address := params[0]
-	fmt.Println("address:", address)
 
 	srv := service{}
 	account, _ := srv.GetAccountByAddress(address)
-	log.Info().Msgf("Processed for Account: %v", account.Address)
 	fmt.Fprint(w, account)
 }
