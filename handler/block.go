@@ -38,7 +38,7 @@ type Block struct {
 
 // BlockI is an interface to provide block specific services
 type BlockI interface {
-	GetBlockByHeight(height int64) (*Block, error)
+	GetBlockByHeight(height int64) error
 }
 
 // Service ...
@@ -48,10 +48,10 @@ var (
 	_ BlockI = (*service)(nil)
 )
 
-func (s *service) GetBlockByHeight(height int64) (*Block, error) {
+func (s *service) GetBlockByHeight(height int64) error {
 	net, err := NB.builder.Build()
 	if err != nil {
-		log.Error().Msgf("Failed to build network:%v", err)
+		return fmt.Errorf(fmt.Sprintf("Failed to build network:%v", err))
 	}
 	go net.Listen()
 	defer net.Close()
@@ -63,16 +63,13 @@ func (s *service) GetBlockByHeight(height int64) (*Block, error) {
 
 	ctx := network.WithSignMessage(context.Background(), true)
 
-	net.Broadcast(ctx, &protoplugin.BlockHeightRequest{BlockHeight: 2})
+	net.Broadcast(ctx, &protoplugin.BlockHeightRequest{BlockHeight: height})
 	time.Sleep(2 * time.Second)
-	block := Block{
-		BlockHeight:       1,
-		Timestamp:         79273,
-		Transactions:      500,
-		SupervisorAddress: "xafaljowx",
-	}
+
+	// TODO: Need to have a better implementation rather than using
+	// the global variable blockByHeight
 	blockByHeight = 1
-	return &block, nil
+	return nil
 }
 
 // BlockMessagePlugin will receive all Block specific messages.
@@ -84,16 +81,14 @@ func (state *BlockMessagePlugin) Receive(ctx *network.PluginContext) error {
 	case *protobuf.BlockResponse:
 		log.Info().Msgf("Block Response: %v", msg)
 		log.Info().Msgf("Block blockByHeight: %v", blockByHeight)
-		//if blockByHeight == 1 {
-		//blockResponse.mux.Lock()
+
 		blockResponse.BlockHeight = msg.BlockHeight
 		blockResponse.Transactions = msg.Transactions
 		blockResponse.Timestamp = msg.Time.Seconds
 		blockResponse.SupervisorAddress = msg.SupervisorAddress
 		blockByHeight = 0
-		//blockResponse.mux.Unlock()
+
 		log.Info().Msgf("Block Response: %v", blockResponse)
-		//}
 	}
 	return nil
 }
@@ -125,7 +120,12 @@ func GetBlockByHeight(w http.ResponseWriter, r *http.Request) {
 	}
 
 	srv := service{}
-	block, _ := srv.GetBlockByHeight(height)
-	log.Info().Msgf("Processed for Block Height: %d", block.BlockHeight)
-	fmt.Fprint(w, blockResponse)
+	err = srv.GetBlockByHeight(height)
+	if err != nil {
+		fmt.Fprint(w, err)
+	} else {
+		log.Info().Msgf("Processed for Block Height: %d", blockResponse.BlockHeight)
+		fmt.Fprint(w, blockResponse)
+	}
+
 }
