@@ -23,8 +23,8 @@ func main() {
 // CRUD requests are performed
 func LaunchServer() {
 	http.HandleFunc("/block", handler.GetBlockByHeight)
-	http.HandleFunc("/getaccount", GetAccount)
-	http.HandleFunc("/getaccountportfolio", GetAccountPortfolio)
+	http.HandleFunc("/getaccount", handler.GetAccount)
+	http.HandleFunc("/getaccountportfolio", handler.GetAccountPortfolio)
 	log.Fatal(http.ListenAndServe(":80", nil))
 }
 
