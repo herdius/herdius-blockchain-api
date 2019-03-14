@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/herdius/herdius-core/p2p/network"
@@ -12,27 +13,28 @@ import (
 // TXMessagePlugin will receive all Transaction specific messages.
 type TXMessagePlugin struct{ *network.Plugin }
 type TxReq struct {
-	SenderAddress string `json:sender_address`
-	SenderPubKey  string `json:sender_pubkey`
-	RecAddress    string `json:rec_address`
+	SenderAddress string `json:senderaddress`
+	SenderPubKey  string `json:senderpubkey`
+	RecAddress    string `json:recaddress`
 	Signature     string `json:signature`
 	Asset         struct {
+		Message  string  `json:message`
 		Network  string  `json:network`
 		Category string  `json:category`
 		Currency string  `json:currency`
 		Value    float64 `json:value`
 		Fee      float64 `json:fee`
-	}
+	} `json:asset`
 }
 
 // PostTransaction handler called by http.HandleFunc
 func PostTransaction(w http.ResponseWriter, r *http.Request) {
-	decoder := json.NewDecoder(r.Body)
+	body, err := ioutil.ReadAll(r.Body)
 	var txReq TxReq
-	err := decoder.Decode(&txReq)
+	err = json.Unmarshal(body, &txReq)
 	if err != nil {
 		log.Info().Msg("Could not parse POST json data, invalid format")
-		fmt.Fprint(w, "Request invalid, Could not parse POST json data, invalid format\n")
+		fmt.Fprint(w, "Request invalid, Could not parse POST json data, invalid format, err: %v\n", err)
 	}
 	if txReq.SenderAddress == "" ||
 		txReq.SenderPubKey == "" ||
