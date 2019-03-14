@@ -4,8 +4,8 @@ import (
 	"os/user"
 	"strconv"
 
-	protoplugin "github.com/herdius/herdius-blockchain-api/protobuf"
-	blockProtobuf "github.com/herdius/herdius-core/blockchain/protobuf" // fix me
+	apiProtobuf "github.com/herdius/herdius-blockchain-api/protobuf"
+	blockProtobuf "github.com/herdius/herdius-core/blockchain/protobuf"
 	"github.com/herdius/herdius-core/p2p/crypto"
 	keystore "github.com/herdius/herdius-core/p2p/key"
 
@@ -65,10 +65,10 @@ func networkBuilder() *network.Builder {
 	}
 
 	opcode.RegisterMessageType(opcode.Opcode(1112), &blockProtobuf.ConnectionMessage{})
-	opcode.RegisterMessageType(opcode.Opcode(1113), &protoplugin.BlockHeightRequest{})
-	opcode.RegisterMessageType(opcode.Opcode(1114), &protoplugin.BlockResponse{})
-	opcode.RegisterMessageType(opcode.Opcode(1115), &protoplugin.AccountRequest{})
-	opcode.RegisterMessageType(opcode.Opcode(1116), &protoplugin.AccountResponse{})
+	opcode.RegisterMessageType(opcode.Opcode(1113), &apiProtobuf.BlockHeightRequest{})
+	opcode.RegisterMessageType(opcode.Opcode(1114), &apiProtobuf.BlockResponse{})
+	opcode.RegisterMessageType(opcode.Opcode(1115), &apiProtobuf.AccountRequest{})
+	opcode.RegisterMessageType(opcode.Opcode(1116), &apiProtobuf.AccountResponse{})
 
 	builder := network.NewBuilder()
 	builder.SetKeys(keys)
