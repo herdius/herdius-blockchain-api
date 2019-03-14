@@ -15,33 +15,35 @@ import (
 
 // TXMessagePlugin will receive all Transaction specific messages.
 type TXMessagePlugin struct{ *network.Plugin }
-type TxReq struct {
-	SenderAddress string `json:senderaddress`
-	SenderPubKey  string `json:senderpubkey`
-	RecAddress    string `json:recaddress`
-	Signature     string `json:signature`
-	Asset         struct {
-		Message  string  `json:message`
-		Network  string  `json:network`
-		Category string  `json:category`
-		Currency string  `json:currency`
-		Value    float64 `json:value`
-		Fee      float64 `json:fee`
-	} `json:asset`
-}
+
+//type TxReq struct {
+//	SenderAddress string `json:senderaddress`
+//	SenderPubKey  string `json:senderpubkey`
+//	RecAddress    string `json:recaddress`
+//	Signature     string `json:signature`
+//	Asset         struct {
+//		Message  string  `json:message`
+//		Network  string  `json:network`
+//		Category string  `json:category`
+//		Currency string  `json:currency`
+//		Value    float64 `json:value`
+//		Fee      float64 `json:fee`
+//	} `json:asset`
+//}
 
 // PostTransaction handler called by http.HandleFunc
 func PostTransaction(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
-	var txReq TxReq
+	var txReq *apiProtobuf.Transaction
 	err = json.Unmarshal(body, &txReq)
 	if err != nil {
 		log.Info().Msg("Could not parse POST json data, invalid format")
 		fmt.Fprint(w, "Request invalid, Could not parse POST json data, invalid format, err: %v\n", err)
+		return
 	}
-	if txReq.SenderAddress == "" ||
-		txReq.SenderPubKey == "" ||
-		txReq.RecAddress == "" ||
+	if (*txReq).Senderaddress == "" ||
+		txReq.Senderpubkey == "" ||
+		txReq.Recaddress == "" ||
 		txReq.Signature == "" ||
 		txReq.Asset.Network == "" ||
 		txReq.Asset.Category == "" ||
@@ -49,10 +51,13 @@ func PostTransaction(w http.ResponseWriter, r *http.Request) {
 		txReq.Asset.Value < 0 ||
 		txReq.Asset.Fee < 0 {
 		log.Info().Msg("POST body did not include all required values")
-		fmt.Fprint(w, "Request invalid, POST body did not include all required values\n")
+		fmt.Fprint(w, "Request missing data, POST body did not include all required values\n")
+		fmt.Fprint(w, "txreq:", txReq)
+		return
 	}
 
-	fmt.Fprint(w, "Request syntax validated")
+	fmt.Fprint(w, "\nRequest syntax validated")
+	fmt.Fprint(w, "txreq:", txReq)
 	net, err := NB.builder.Build()
 	if err != nil {
 		log.Error().Msgf("Failed to build network:%v", err)

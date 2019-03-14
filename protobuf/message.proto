@@ -59,9 +59,9 @@ message Asset {
 }
 
 message Transaction {
-  string sender_address = 1;
-  string sender_pub_key = 2;
-  string rec_address  = 3;
+  string senderaddress = 1;
+  string senderpubkey = 2;
+  string recaddress  = 3;
   string signature = 4;
   Asset asset = 5;
 }
