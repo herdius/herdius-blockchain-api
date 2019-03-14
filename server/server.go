@@ -17,5 +17,6 @@ func main() {
 func LaunchServer() {
 	http.HandleFunc("/block", handler.GetBlockByHeight)
 	http.HandleFunc("/account", handler.GetAccount)
+	http.HandleFunc("/tx", handler.PostTransaction)
 	log.Fatal(http.ListenAndServe(":80", nil))
 }
