@@ -48,3 +48,32 @@ message AccountResponse {
   int64 balance = 3;
   string storage_root = 4;
 }
+
+message Asset {
+  string Message = 1;
+  string Network = 2;
+  string Category = 3;
+  string Currency = 4;
+  float Value = 5;
+  float Fee = 6;
+}
+
+message Transaction {
+  string sender_address = 1;
+  string sender_pub_key = 2;
+  string rec_address  = 3;
+  string signature = 4;
+  Asset asset = 5;
+}
+
+
+message TransactionRequest {
+  Transaction Tx = 1;
+}
+
+message TransactionResponse {
+  string tx_id = 1;
+  int64 pending = 2;
+  int64 queued = 3;
+  string status = 4;
+}

@@ -1,11 +1,14 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
+	apiProtobuf "github.com/herdius/herdius-blockchain-api/protobuf"
 	"github.com/herdius/herdius-core/p2p/network"
 	"github.com/rs/zerolog/log"
 )
@@ -49,5 +52,32 @@ func PostTransaction(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "Request invalid, POST body did not include all required values\n")
 	}
 
-	fmt.Fprint(w, txReq)
+	fmt.Fprint(w, "Request syntax validated")
+	net, err := NB.builder.Build()
+	if err != nil {
+		log.Error().Msgf("Failed to build network:%v", err)
+	}
+
+	go net.Listen()
+	defer net.Close()
+
+	supervisorAddress := "tcp://localhost:3000"
+	supervisorAdds := make([]string, 1)
+	supervisorAdds = append(supervisorAdds, supervisorAddress)
+	bootStrap(net, supervisorAdds)
+
+	ctx := network.WithSignMessage(context.Background(), true)
+	net.Broadcast(ctx, &apiProtobuf.TransactionRequest{Tx: txReq})
+	time.Sleep(2 * time.Second)
+}
+
+type TxMessagePlugin struct{ *network.Plugin }
+
+// Receive handles block specific received messages
+func (p *TxMessagePlugin) Receive(ctx *network.PluginContext) error {
+	switch msg := ctx.Message().(type) {
+	case *apiProtobuf.TransactionResponse:
+		log.Info().Msgf("Tx Response: %v", msg)
+	}
+	return nil
 }
