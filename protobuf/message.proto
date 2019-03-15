@@ -52,18 +52,15 @@ message AccountResponse {
 message Asset {
   string Message = 1;
   string Network = 2;
-  string Category = 3;
-  string Currency = 4;
-  float Value = 5;
-  float Fee = 6;
+  float Value = 3;
+  float Fee = 4;
 }
 
 message Transaction {
-  string senderaddress = 1;
-  string senderpubkey = 2;
-  string recaddress  = 3;
-  string signature = 4;
-  Asset asset = 5;
+  string senderpubkey = 1;
+  string signature = 2;
+  string recaddress = 3;
+  Asset asset = 4;
 }
 
 
