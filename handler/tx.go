@@ -23,7 +23,7 @@ func PostTransaction(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(body, &txReq)
 	if err != nil {
 		log.Info().Msg("Could not parse POST json data, invalid format")
-		fmt.Fprint(w, "Request invalid, Could not parse POST json data, invalid format, err:\n", err)
+		fmt.Fprint(w, "\nRequest invalid, Could not parse POST json data, invalid format, err:\n", err)
 		return
 	}
 	if txReq.Senderpubkey == "" ||
@@ -33,16 +33,16 @@ func PostTransaction(w http.ResponseWriter, r *http.Request) {
 		txReq.Asset.Value < 0 ||
 		txReq.Asset.Fee < 0 {
 		log.Info().Msg("POST body did not include all required values")
-		fmt.Fprint(w, "Request missing data, POST body did not include all required values\n")
+		fmt.Fprint(w, "\nRequest missing data, POST body did not include all required values\n")
 		fmt.Fprint(w, "\ntxreq:\n", txReq)
 		return
 	}
 
 	fmt.Fprint(w, "\nRequest syntax validated")
-	fmt.Fprint(w, "txreq:", txReq)
 	net, err := NB.builder.Build()
 	if err != nil {
 		log.Error().Msgf("Failed to build network:", err)
+		fmt.Fprint(w, "\nFailed to build network, request aborted")
 		return
 	}
 
