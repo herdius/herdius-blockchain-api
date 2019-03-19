@@ -30,6 +30,7 @@ func PostTransaction(w http.ResponseWriter, r *http.Request) {
 		txReq.Signature == "" ||
 		txReq.Recaddress == "" ||
 		txReq.Asset.Network == "" ||
+		txReq.Asset.Nonce <= 0 ||
 		txReq.Asset.Value < 0 ||
 		txReq.Asset.Fee < 0 {
 		log.Info().Msg("POST body did not include all required values")
