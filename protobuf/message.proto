@@ -52,8 +52,9 @@ message AccountResponse {
 message Asset {
   string Message = 1;
   string Network = 2;
-  float Value = 3;
-  float Fee = 4;
+  uint32 Value = 3;
+  uint32 Fee = 4;
+  uint32 Nonce = 5;
 }
 
 message Transaction {
@@ -62,7 +63,6 @@ message Transaction {
   string recaddress = 3;
   Asset asset = 4;
 }
-
 
 message TransactionRequest {
   Transaction Tx = 1;
