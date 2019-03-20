@@ -7,14 +7,26 @@ import (
 	"time"
 
 	protoplugin "github.com/herdius/herdius-blockchain-api/protobuf"
-	"github.com/herdius/herdius-core/accounts/account"
 	"github.com/herdius/herdius-core/p2p/network"
 	"github.com/rs/zerolog/log"
 )
 
+var (
+	accountResultTracker = 0
+	account              = Account{}
+)
+
+// Account : Account Detail
+type Account struct {
+	Nonce       uint64 `json:"nonce"`
+	Address     string `json:"address"`
+	Balance     int64  `json:"balance"`
+	StorageRoot string `json:"storageRoot"`
+}
+
 // GetAccountByAddress broadcasts a request to the supervisor to retrieve
 // Account details for a given account address
-func (s *service) GetAccountByAddress(accAddr string) (*account.Account, error) {
+func (s *service) GetAccountByAddress(accAddr string) (*Account, error) {
 	net, err := NB.builder.Build()
 	if err != nil {
 		log.Error().Msgf("Failed to build network:%v", err)
@@ -31,9 +43,13 @@ func (s *service) GetAccountByAddress(accAddr string) (*account.Account, error) 
 	ctx := network.WithSignMessage(context.Background(), true)
 
 	net.Broadcast(ctx, &protoplugin.AccountRequest{Address: accAddr})
-	time.Sleep(2 * time.Second)
+	time.Sleep(1 * time.Second)
 
-	acc := &account.Account{}
+	acc := &Account{}
+	// accountResultTracker will be 1 if request to get account detail using address is broadcasted to
+	// blockchain
+	// TODO: Need to remove global variable implmentation after the MVP
+	accountResultTracker = 1
 	return acc, nil
 }
 
@@ -43,6 +59,11 @@ type AccountMessagePlugin struct{ *network.Plugin }
 func (state *AccountMessagePlugin) Receive(ctx *network.PluginContext) error {
 	switch msg := ctx.Message().(type) {
 	case *protoplugin.AccountResponse:
+		account.Address = msg.Address
+		account.Balance = msg.Balance
+		account.Nonce = uint64(msg.Nonce)
+		account.StorageRoot = msg.StorageRoot
+		accountResultTracker = 1
 		log.Info().Msgf("Account Response: %v", msg)
 	}
 	return nil
@@ -59,6 +80,11 @@ func GetAccount(w http.ResponseWriter, r *http.Request) {
 	address := params[0]
 
 	srv := service{}
-	account, _ := srv.GetAccountByAddress(address)
-	fmt.Fprint(w, account)
+	_, err := srv.GetAccountByAddress(address)
+	if err != nil {
+		fmt.Fprint(w, err)
+	} else {
+		log.Info().Msgf("Received Account detail for address: %s", account.Address)
+		fmt.Fprint(w, account)
+	}
 }
