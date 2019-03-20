@@ -7,6 +7,7 @@ import (
 	"time"
 
 	protoplugin "github.com/herdius/herdius-blockchain-api/protobuf"
+	"github.com/herdius/herdius-core-dev/blockchain/protobuf"
 	"github.com/herdius/herdius-core/p2p/network"
 	"github.com/rs/zerolog/log"
 )
@@ -58,6 +59,8 @@ type AccountMessagePlugin struct{ *network.Plugin }
 // Receive handles block specific received messages
 func (state *AccountMessagePlugin) Receive(ctx *network.PluginContext) error {
 	switch msg := ctx.Message().(type) {
+	case *protobuf.ConnectionMessage:
+		log.Info().Msgf("Account detail not found: %v", msg)
 	case *protoplugin.AccountResponse:
 		account.Address = msg.Address
 		account.Balance = msg.Balance
@@ -84,7 +87,14 @@ func GetAccount(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Fprint(w, err)
 	} else {
-		log.Info().Msgf("Received Account detail for address: %s", account.Address)
-		fmt.Fprint(w, account)
+		if len(account.Address) == 0 {
+			fmt.Fprint(w, "Accound details not found for address: "+address)
+		}
+
+		if len(account.Address) > 0 {
+			log.Info().Msgf("Received Account detail for address: %s", account.Address)
+			fmt.Fprint(w, account)
+		}
+		account = Account{}
 	}
 }
