@@ -69,6 +69,8 @@ func networkBuilder() *network.Builder {
 	opcode.RegisterMessageType(opcode.Opcode(1114), &apiProtobuf.BlockResponse{})
 	opcode.RegisterMessageType(opcode.Opcode(1115), &apiProtobuf.AccountRequest{})
 	opcode.RegisterMessageType(opcode.Opcode(1116), &apiProtobuf.AccountResponse{})
+	opcode.RegisterMessageType(opcode.Opcode(1117), &apiProtobuf.TransactionRequest{})
+	opcode.RegisterMessageType(opcode.Opcode(1118), &apiProtobuf.TransactionResponse{})
 
 	builder := network.NewBuilder()
 	builder.SetKeys(keys)
@@ -78,6 +80,7 @@ func networkBuilder() *network.Builder {
 	builder.AddPlugin(new(discovery.Plugin))
 	builder.AddPlugin(new(BlockMessagePlugin))
 	builder.AddPlugin(new(AccountMessagePlugin))
+	builder.AddPlugin(new(TxMessagePlugin))
 	return builder
 
 }
