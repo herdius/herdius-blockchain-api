@@ -26,7 +26,7 @@ func PostTransaction(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "\nRequest invalid, Could not parse POST json data, invalid format, err:\n", err)
 		return
 	}
-	if txReq.Senderpubkey == "" ||
+	if len(txReq.Senderpubkey) == 0 ||
 		txReq.Signature == "" ||
 		txReq.Recaddress == "" ||
 		txReq.Asset.Network == "" ||

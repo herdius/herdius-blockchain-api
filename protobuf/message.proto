@@ -58,7 +58,7 @@ message Asset {
 }
 
 message Transaction {
-  string senderpubkey = 1;
+  bytes senderpubkey = 1;
   string signature = 2;
   string recaddress = 3;
   Asset asset = 4;
