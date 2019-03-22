@@ -44,17 +44,17 @@ message AccountRequest {
 
 message AccountResponse {
   string address = 1;
-  int64 nonce = 2;
-  int64 balance = 3;
+  uint64 nonce = 2;
+  uint64 balance = 3;
   string storage_root = 4;
 }
 
 message Asset {
   string Message = 1;
   string Network = 2;
-  uint32 Value = 3;
-  uint32 Fee = 4;
-  uint32 Nonce = 5;
+  uint64 Value = 3;
+  uint64 Fee = 4;
+  uint64 Nonce = 5;
 }
 
 message Transaction {
