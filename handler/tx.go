@@ -27,7 +27,7 @@ func PostTransaction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if len(txReq.Senderpubkey) == 0 ||
-		txReq.Signature == "" ||
+		len(txReq.Signature) == 0 ||
 		txReq.Recaddress == "" ||
 		txReq.Asset.Network == "" ||
 		txReq.Asset.Nonce <= 0 ||
