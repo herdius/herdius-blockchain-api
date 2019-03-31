@@ -2,10 +2,12 @@ package handler
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
 
+	"github.com/gorilla/mux"
 	protoplugin "github.com/herdius/herdius-blockchain-api/protobuf"
 	"github.com/herdius/herdius-core-dev/blockchain/protobuf"
 	"github.com/herdius/herdius-core/p2p/network"
@@ -13,8 +15,8 @@ import (
 )
 
 var (
-	accountResultTracker = 0
-	account              = Account{}
+	//	accountResultTracker = 0
+	account = Account{}
 )
 
 // Account : Account Detail
@@ -50,10 +52,11 @@ func (s *service) GetAccountByAddress(accAddr string) (*Account, error) {
 	// accountResultTracker will be 1 if request to get account detail using address is broadcasted to
 	// blockchain
 	// TODO: Need to remove global variable implmentation after the MVP
-	accountResultTracker = 1
+	//accountResultTracker = 1
 	return acc, nil
 }
 
+// AccountMessagePlugin ...
 type AccountMessagePlugin struct{ *network.Plugin }
 
 // Receive handles block specific received messages
@@ -66,7 +69,7 @@ func (state *AccountMessagePlugin) Receive(ctx *network.PluginContext) error {
 		account.Balance = msg.Balance
 		account.Nonce = uint64(msg.Nonce)
 		account.StorageRoot = msg.StorageRoot
-		accountResultTracker = 1
+		//accountResultTracker = 1
 		log.Info().Msgf("Account Response: %v", msg)
 	}
 	return nil
@@ -74,13 +77,13 @@ func (state *AccountMessagePlugin) Receive(ctx *network.PluginContext) error {
 
 // GetAccount handler called by http.HandleFunc
 func GetAccount(w http.ResponseWriter, r *http.Request) {
-	params, ok := r.URL.Query()["address"]
-	if !ok || len(params[0]) < 1 {
-		log.Info().Msg("Url Param 'address' is missing")
-		fmt.Fprint(w, "Request invalid, 'address' param missing\n")
+	params := mux.Vars(r)
+	if len(params["address"]) == 0 {
+		json.NewEncoder(w).Encode("Missing parameters")
+		return
 	}
 
-	address := params[0]
+	address := params["address"]
 
 	srv := service{}
 	_, err := srv.GetAccountByAddress(address)
@@ -88,12 +91,15 @@ func GetAccount(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, err)
 	} else {
 		if len(account.Address) == 0 {
-			fmt.Fprint(w, "Accound details not found for address: "+address)
+			//fmt.Fprint(w, "Accound details not found for address: "+address)
+			json.NewEncoder(w).Encode("Accound details not found for address: " + address)
+			return
 		}
 
 		if len(account.Address) > 0 {
 			log.Info().Msgf("Received Account detail for address: %s", account.Address)
-			fmt.Fprint(w, account)
+			//fmt.Fprint(w, account)
+			json.NewEncoder(w).Encode(account)
 		}
 		account = Account{}
 	}

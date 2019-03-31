@@ -50,6 +50,7 @@ var (
 
 func (s *service) GetBlockByHeight(height int64) error {
 	net, err := NB.builder.Build()
+	NB.GetNetworkBuilder()
 	if err != nil {
 		return fmt.Errorf(fmt.Sprintf("Failed to build network:%v", err))
 	}
