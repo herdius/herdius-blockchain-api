@@ -15,6 +15,10 @@ import (
 	"github.com/herdius/herdius-core-dev/p2p/key"
 )
 
+/**
+This file is just for testing purpose. It will be removed.
+*/
+
 func main() {
 
 	dataPath := "/Users/lingrajmahanand/go/src/github.com/herdius/herdius-core-dev/cmd/testdata/secp205k1Accts/"
