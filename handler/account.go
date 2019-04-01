@@ -79,7 +79,7 @@ func (state *AccountMessagePlugin) Receive(ctx *network.PluginContext) error {
 func GetAccount(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	if len(params["address"]) == 0 {
-		json.NewEncoder(w).Encode("Missing parameters")
+		json.NewEncoder(w).Encode("Request invalid, 'address' param missing\n")
 		return
 	}
 
