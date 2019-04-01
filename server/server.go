@@ -3,10 +3,12 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -15,7 +17,49 @@ import (
 
 func main() {
 	log.Println("Opening API")
+	//test()
 	LaunchServer()
+}
+func test() {
+	fmt.Println("test it")
+
+	ctx := make(chan *TX)
+	go func() {
+		i := 1
+		for {
+			time.Sleep(time.Millisecond * 1000)
+			txpool := GetMemPool()
+
+			txpool.data = append(txpool.data, i)
+			fmt.Println(len(txpool.data))
+			ctx <- txpool
+			i++
+		}
+
+	}()
+
+	for {
+		select {
+		case tx := <-ctx:
+			fmt.Println(tx.data)
+		}
+	}
+
+}
+
+type TX struct {
+	data []int
+}
+
+var memPool *TX
+var once sync.Once
+
+func GetMemPool() *TX {
+	once.Do(func() {
+		d := make([]int, 0)
+		memPool = &TX{data: d}
+	})
+	return memPool
 }
 
 // LaunchServer ...
