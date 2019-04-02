@@ -9,25 +9,16 @@ import (
 
 	"github.com/herdius/herdius-blockchain-api/protobuf"
 
-	b64 "encoding/base64"
-
 	"log"
 
-	cryptoAmino "github.com/herdius/herdius-core-dev/crypto/encoding/amino"
-	"github.com/herdius/herdius-core-dev/crypto/secp256k1"
-
 	"github.com/herdius/herdius-core/p2p/network"
-	amino "github.com/tendermint/go-amino"
 )
 
-var cdc = amino.NewCodec()
-
-func init() {
-
-	cryptoAmino.RegisterAmino(cdc)
-}
-
 var (
+	// newTxResponse variable holds the transaction response detail from Herdius blockchain.
+	// This is an inappropriate approach to hold data coming from other services.
+	// TODO: This needs to be switched to be getting handled in single context
+	// of client request. Once the request is served the context also needs to be closed.
 	newTxResponse = protobuf.TxResponse{}
 )
 
@@ -95,36 +86,6 @@ func SendTx(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
-	// Re-Create the TX to verify sign
-	tx := txRequest.Tx
-	asset := protobuf.Asset{
-		Category: tx.Asset.Category,
-		Symbol:   tx.Asset.Symbol,
-		Network:  tx.Asset.Network,
-		Value:    tx.Asset.Value,
-		Fee:      tx.Asset.Fee,
-		Nonce:    tx.Asset.Nonce,
-	}
-	txToVerify := protobuf.Tx{
-		SenderAddress:   tx.SenderAddress,
-		SenderPubkey:    tx.SenderPubkey,
-		RecieverAddress: tx.RecieverAddress,
-		Asset:           &asset,
-		Message:         tx.Message,
-	}
-
-	txbBeforeSign, _ := json.Marshal(txToVerify)
-	//verify the sign
-	senderPubKeyBytes, _ := b64.StdEncoding.DecodeString(tx.SenderPubkey)
-
-	//sendPubKey := senderPrivKey.PubKey()
-	var sendPubkey secp256k1.PubKeySecp256k1
-
-	cdc.UnmarshalBinaryBare(senderPubKeyBytes, &sendPubkey)
-
-	decodedSig, _ := b64.StdEncoding.DecodeString(tx.Sign)
-
-	log.Println(sendPubkey.VerifyBytes(txbBeforeSign, decodedSig))
 	srv := service{}
 	srv.SendTxToBlockchain(txRequest)
 

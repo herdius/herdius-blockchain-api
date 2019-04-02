@@ -3,19 +3,20 @@ package handler
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/gorilla/mux"
 	protoplugin "github.com/herdius/herdius-blockchain-api/protobuf"
-	"github.com/herdius/herdius-core-dev/blockchain/protobuf"
 	"github.com/herdius/herdius-core/p2p/network"
 	"github.com/rs/zerolog/log"
 )
 
 var (
-	//	accountResultTracker = 0
+	// account variable holds the account detail response from Herdius blockchain.
+	// This is an inappropriate approach to hold data coming from other services.
+	// TODO: This needs to be switched to be getting handled in single context
+	// of client request. Once the request is served the context also needs to be closed.
 	account = Account{}
 )
 
@@ -62,14 +63,11 @@ type AccountMessagePlugin struct{ *network.Plugin }
 // Receive handles block specific received messages
 func (state *AccountMessagePlugin) Receive(ctx *network.PluginContext) error {
 	switch msg := ctx.Message().(type) {
-	case *protobuf.ConnectionMessage:
-		log.Info().Msgf("Account detail not found: %v", msg)
 	case *protoplugin.AccountResponse:
 		account.Address = msg.Address
 		account.Balance = msg.Balance
 		account.Nonce = uint64(msg.Nonce)
 		account.StorageRoot = msg.StorageRoot
-		//accountResultTracker = 1
 		log.Info().Msgf("Account Response: %v", msg)
 	}
 	return nil
@@ -88,17 +86,15 @@ func GetAccount(w http.ResponseWriter, r *http.Request) {
 	srv := service{}
 	_, err := srv.GetAccountByAddress(address)
 	if err != nil {
-		fmt.Fprint(w, err)
+		json.NewEncoder(w).Encode("Failed to retrieve acount detail due to: " + err.Error())
 	} else {
 		if len(account.Address) == 0 {
-			//fmt.Fprint(w, "Accound details not found for address: "+address)
 			json.NewEncoder(w).Encode("Accound details not found for address: " + address)
 			return
 		}
 
 		if len(account.Address) > 0 {
 			log.Info().Msgf("Received Account detail for address: %s", account.Address)
-			//fmt.Fprint(w, account)
 			json.NewEncoder(w).Encode(account)
 		}
 		account = Account{}
