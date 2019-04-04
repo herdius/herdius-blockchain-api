@@ -10,7 +10,7 @@ import (
 	"encoding/json"
 
 	"github.com/herdius/herdius-blockchain-api/protobuf"
-	"github.com/herdius/herdius-core-dev/p2p/key"
+	"github.com/herdius/herdius-core/p2p/key"
 )
 
 /**
