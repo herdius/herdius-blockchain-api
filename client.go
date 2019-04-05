@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 
 	b64 "encoding/base64"
 	"encoding/json"
@@ -79,7 +80,16 @@ func main() {
 		log.Fatalf("Failed to Marshal %v", err)
 	}
 
-	response, err := http.Post("http://localhost:80/tx", "application/json", bytes.NewBuffer(txJSON))
+	var endpoint string
+	if len(os.Args) > 1 {
+		endpoint = os.Args[1]
+	} else {
+		endpoint = "localhost"
+	}
+	endpoint = "http://" + endpoint + ":80/tx"
+	log.Println("endpoint:", endpoint)
+
+	response, err := http.Post(endpoint, "application/json", bytes.NewBuffer(txJSON))
 	if err != nil {
 		log.Fatalf("Failed to Marshal %v", err)
 	}
