@@ -8,6 +8,23 @@ The API node(s) act as a [DMZ](https://searchsecurity.techtarget.com/definition/
 
 #### `POST` new transaction
 
+**Method 1**: A helper package found in `client.go` is created to simplify this process. To `POST` a new transaction to a Herdius Blockchain API node, simply run `go run client.go [API endpoint]` in which the `[API endpoint]` is the IP or DNS address of the API node of the chain to send the transaction to. The default address is `localhost`, meaning that you have an API node listening on your host server/computer.
+
+Example:
+
+```
+// Send transaction to primary Herdius test chain (with API node IP address at `3.209.249.184`)
+go run client.go 3.209.249.184
+
+// Send transaction to host's API node
+go run client.go
+go run client.go localhost // equivalent to ^
+```
+
+**Method 2**: Manually `POST` to API node
+
+TODO
+
 #### `GET` account details
 
 #### `GET` transaction details
