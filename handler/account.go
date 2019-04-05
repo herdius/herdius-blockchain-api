@@ -24,8 +24,9 @@ var (
 type Account struct {
 	Nonce       uint64 `json:"nonce"`
 	Address     string `json:"address"`
-	Balance     int64  `json:"balance"`
+	Balance     uint64 `json:"balance"`
 	StorageRoot string `json:"storageRoot"`
+	PublickKey  string `json:"publicKey"`
 }
 
 // GetAccountByAddress broadcasts a request to the supervisor to retrieve
@@ -68,6 +69,7 @@ func (state *AccountMessagePlugin) Receive(ctx *network.PluginContext) error {
 		account.Balance = msg.Balance
 		account.Nonce = uint64(msg.Nonce)
 		account.StorageRoot = msg.StorageRoot
+		account.PublickKey = msg.PublicKey
 		log.Info().Msgf("Account Response: %v", msg)
 	}
 	return nil
