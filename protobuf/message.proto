@@ -13,14 +13,14 @@ message Timestamp {
 }
 
 message BlockHeightRequest{
-    int64 block_height                  = 1;
+    uint64 block_height                  = 1;
 }
 
 message BlockResponse{
-    int64 block_height                  = 1;
+    uint64 block_height                  = 1;
     // Time of block intialization
     Timestamp time                  = 2;
-    int32 transactions              = 3;
+    uint64 transactions              = 3;
 
     // Supervisor herdius token address who created the block
     string supervisor_address       = 4;
@@ -36,6 +36,7 @@ message AccountResponse {
   uint64 nonce = 2;
   uint64 balance = 3;
   string storage_root = 4;
+  string public_key   = 5;
 }
 
 message Tx {
@@ -45,6 +46,8 @@ message Tx {
     Asset asset             = 4;
     string message          = 5;
     string sign             = 6;
+    string type             = 7;
+    string status           = 8;
 }
 
 message Asset {

@@ -2,11 +2,13 @@ package handler
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/herdius/herdius-blockchain-api/protobuf"
 	protoplugin "github.com/herdius/herdius-blockchain-api/protobuf"
 	"github.com/herdius/herdius-core/p2p/log"
@@ -29,16 +31,16 @@ func init() {
 
 // Block will hold block detail retrieved from blockchain
 type Block struct {
-	BlockHeight       int64
+	BlockHeight       uint64
 	Timestamp         int64 // Timestamp of block intialization
-	Transactions      int32
+	Transactions      uint64
 	SupervisorAddress string // Herdius Address of Supervisor node
 	StateRoot         []byte
 }
 
 // BlockI is an interface to provide block specific services
 type BlockI interface {
-	GetBlockByHeight(height int64) error
+	GetBlockByHeight(height uint64) error
 }
 
 // Service ...
@@ -48,7 +50,7 @@ var (
 	_ BlockI = (*service)(nil)
 )
 
-func (s *service) GetBlockByHeight(height int64) error {
+func (s *service) GetBlockByHeight(height uint64) error {
 	net, err := NB.builder.Build()
 	NB.GetNetworkBuilder()
 	if err != nil {
@@ -106,13 +108,13 @@ func bootStrap(net *network.Network, peers []string) {
 
 // GetBlockByHeight handler
 func GetBlockByHeight(w http.ResponseWriter, r *http.Request) {
-	params, ok := r.URL.Query()["height"]
-	if !ok || len(params[0]) < 1 {
-		log.Info().Msg("Url Param 'height' is missing")
-		fmt.Fprint(w, "Request invalid, 'height' param missing\n")
+	params := mux.Vars(r)
+	if len(params["height"]) == 0 {
+		json.NewEncoder(w).Encode("Request invalid, 'height' param missing\n")
+		return
 	}
 
-	heightJSON := params[0]
+	heightJSON := params["height"]
 
 	height, err := strconv.ParseInt(heightJSON, 10, 64)
 
@@ -121,7 +123,7 @@ func GetBlockByHeight(w http.ResponseWriter, r *http.Request) {
 	}
 
 	srv := service{}
-	err = srv.GetBlockByHeight(height)
+	err = srv.GetBlockByHeight(uint64(height))
 	if err != nil {
 		fmt.Fprint(w, err)
 	} else {
