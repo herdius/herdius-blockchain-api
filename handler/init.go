@@ -41,10 +41,6 @@ func networkBuilder() *network.Builder {
 	port := 5555
 	host := "localhost"
 
-	peer := "tcp://localhost:3000"
-	peers := make([]string, 1)
-	peers = append(peers, peer)
-
 	nodeAddress := host + ":" + strconv.Itoa(port)
 
 	nodekey, err := keystore.LoadOrGenNodeKey(user.HomeDir + "/" + nodeAddress + "_peer_id.json")
