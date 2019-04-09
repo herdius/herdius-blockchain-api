@@ -2,14 +2,13 @@ package main
 
 import (
 	"bytes"
+	b64 "encoding/base64"
+	"encoding/json"
 	"flag"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
-
-	b64 "encoding/base64"
-	"encoding/json"
 
 	"github.com/herdius/herdius-blockchain-api/protobuf"
 	"github.com/herdius/herdius-core/p2p/key"

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/herdius/herdius-blockchain-api/protobuf"
@@ -66,8 +65,25 @@ func (s *service) GetBlockByHeight(height uint64) error {
 
 	ctx := network.WithSignMessage(context.Background(), true)
 
-	net.Broadcast(ctx, &protoplugin.BlockHeightRequest{BlockHeight: height})
-	time.Sleep(2 * time.Second)
+	//net.Broadcast(ctx, &protoplugin.BlockHeightRequest{BlockHeight: height})
+
+	pc, _ := net.Client("tcp://localhost:3000")
+	r, err := pc.Request(ctx, &protoplugin.BlockHeightRequest{BlockHeight: height})
+
+	if err != nil {
+		fmt.Println("Error occurred::: " + err.Error())
+	}
+	//	time.Sleep(2 * time.Second)
+	switch msg := r.(type) {
+	case *protobuf.BlockResponse:
+		fmt.Println(msg.BlockHeight)
+		fmt.Println(msg.Transactions)
+		fmt.Println(msg.Time.Seconds)
+		fmt.Println(msg.SupervisorAddress)
+	}
+	//r.ProtoMessage()
+
+	//	fmt.Printf("Remote res is ::: %v", r.String())
 
 	// TODO: Need to have a better implementation rather than using
 	// the global variable blockByHeight
