@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"strings"
 
 	"encoding/json"
 	"net/http"
@@ -69,6 +70,25 @@ func SendTx(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&txRequest)
 	if err != nil {
 		json.NewEncoder(w).Encode("\nRequest invalid, Could not parse POST json data, invalid format, err:\n" + err.Error())
+		return
+	}
+
+	// Check if tx type is account registration
+	if len(txRequest.Tx.Type) > 0 && strings.EqualFold(txRequest.Tx.Type, "register") {
+
+		if len(txRequest.Tx.SenderAddress) == 0 ||
+			len(txRequest.Tx.Sign) == 0 ||
+			len(txRequest.Tx.SenderPubkey) == 0 {
+			json.NewEncoder(w).Encode("\nRequest missing data, POST body did not include all required values\n")
+			json.NewEncoder(w).Encode("\ntxreq:\n")
+			json.NewEncoder(w).Encode(txRequest)
+			return
+		}
+		srv := service{}
+		srv.SendTxToBlockchain(txRequest)
+
+		json.NewEncoder(w).Encode(newTxResponse)
+		newTxResponse = protobuf.TxResponse{}
 		return
 	}
 
