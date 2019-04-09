@@ -1,47 +1,40 @@
-package handler
+package network
 
 import (
 	"os/user"
 	"strconv"
+	"sync"
 
+	"github.com/herdius/herdius-blockchain-api/config"
 	apiProtobuf "github.com/herdius/herdius-blockchain-api/protobuf"
 	"github.com/herdius/herdius-core/p2p/crypto"
 	keystore "github.com/herdius/herdius-core/p2p/key"
 
 	"github.com/herdius/herdius-core/p2p/log"
 	"github.com/herdius/herdius-core/p2p/network"
-	"github.com/herdius/herdius-core/p2p/network/discovery"
 	"github.com/herdius/herdius-core/p2p/types/opcode"
 )
 
-// NB is a Network Builder
-var NB *NetworkBuilder
+var builder *network.Builder
+var once sync.Once
 
-// NetworkBuilder ...
-type NetworkBuilder struct {
-	builder *network.Builder
+// GetNetworkBuilder will instantiate network builder only once
+func GetNetworkBuilder() *network.Builder {
+	once.Do(func() {
+		builder = networkBuilder()
+	})
+	return builder
 }
 
-// CreateNetworkBuilder ...
-func CreateNetworkBuilder() *NetworkBuilder {
-	return &NetworkBuilder{
-		builder: networkBuilder(),
-	}
-}
-
-// GetNetworkBuilder ...
-func (nb NetworkBuilder) GetNetworkBuilder() *network.Builder {
-	return nb.builder
-}
-
-// NetworkBuilder ...
 func networkBuilder() *network.Builder {
 	user, err := user.Current()
 	if err != nil {
 		panic(err)
 	}
-	port := 5555
-	host := "localhost"
+
+	configuration := config.GetConfiguration()
+	port := configuration.ConnectionPort
+	host := configuration.ConnectionHost
 
 	nodeAddress := host + ":" + strconv.Itoa(port)
 
@@ -73,9 +66,6 @@ func networkBuilder() *network.Builder {
 	builder.SetKeys(keys)
 	builder.SetAddress(network.FormatAddress("tcp", host, uint16(port)))
 
-	// // Register peer discovery plugin.
-	builder.AddPlugin(new(discovery.Plugin))
-	builder.AddPlugin(new(TXMessagePlugin))
 	return builder
 
 }

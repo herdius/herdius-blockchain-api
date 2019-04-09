@@ -1,0 +1,6 @@
+[dev]
+supervisorhost      = "127.0.0.1"
+supervisorport      = 3000
+tcp                 = "tcp"
+connectionhost      = "localhost"
+connectionport      = 5555

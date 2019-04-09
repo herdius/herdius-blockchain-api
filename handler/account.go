@@ -3,21 +3,17 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
-	"time"
+	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/herdius/herdius-blockchain-api/config"
+	nb "github.com/herdius/herdius-blockchain-api/network"
+	"github.com/herdius/herdius-blockchain-api/protobuf"
 	protoplugin "github.com/herdius/herdius-blockchain-api/protobuf"
 	"github.com/herdius/herdius-core/p2p/network"
 	"github.com/rs/zerolog/log"
-)
-
-var (
-	// account variable holds the account detail response from Herdius blockchain.
-	// This is an inappropriate approach to hold data coming from other services.
-	// TODO: This needs to be switched to be getting handled in single context
-	// of client request. Once the request is served the context also needs to be closed.
-	account = Account{}
 )
 
 // Account : Account Detail
@@ -32,7 +28,8 @@ type Account struct {
 // GetAccountByAddress broadcasts a request to the supervisor to retrieve
 // Account details for a given account address
 func (s *service) GetAccountByAddress(accAddr string) (*Account, error) {
-	net, err := NB.builder.Build()
+
+	net, err := nb.GetNetworkBuilder().Build()
 	if err != nil {
 		log.Error().Msgf("Failed to build network:%v", err)
 	}
@@ -40,39 +37,31 @@ func (s *service) GetAccountByAddress(accAddr string) (*Account, error) {
 	go net.Listen()
 	defer net.Close()
 
-	supervisorAddress := "tcp://localhost:3000"
-	supervisorAdds := make([]string, 1)
-	supervisorAdds = append(supervisorAdds, supervisorAddress)
-	bootStrap(net, supervisorAdds)
+	configuration := config.GetConfiguration()
+
+	supervisorAddress := configuration.TCP + "://" + configuration.SupervisorHost + ":" + strconv.Itoa(configuration.SupervisorPort)
 
 	ctx := network.WithSignMessage(context.Background(), true)
 
-	net.Broadcast(ctx, &protoplugin.AccountRequest{Address: accAddr})
-	time.Sleep(1 * time.Second)
+	supervisorNode, _ := net.Client(supervisorAddress)
 
-	acc := &Account{}
-	// accountResultTracker will be 1 if request to get account detail using address is broadcasted to
-	// blockchain
-	// TODO: Need to remove global variable implmentation after the MVP
-	//accountResultTracker = 1
-	return acc, nil
-}
+	res, err := supervisorNode.Request(ctx, &protoplugin.AccountRequest{Address: accAddr})
 
-// AccountMessagePlugin ...
-type AccountMessagePlugin struct{ *network.Plugin }
-
-// Receive handles block specific received messages
-func (state *AccountMessagePlugin) Receive(ctx *network.PluginContext) error {
-	switch msg := ctx.Message().(type) {
-	case *protoplugin.AccountResponse:
-		account.Address = msg.Address
-		account.Balance = msg.Balance
-		account.Nonce = uint64(msg.Nonce)
-		account.StorageRoot = msg.StorageRoot
-		account.PublickKey = msg.PublicKey
-		log.Info().Msgf("Account Response: %v", msg)
+	if err != nil {
+		return nil, fmt.Errorf(fmt.Sprintf("Failed to find block due to :%v", err))
 	}
-	return nil
+
+	switch msg := res.(type) {
+	case *protobuf.AccountResponse:
+		acc := &Account{}
+		acc.Address = msg.Address
+		acc.Balance = msg.Balance
+		acc.Nonce = msg.Nonce
+		acc.PublickKey = msg.PublicKey
+		acc.StorageRoot = msg.StorageRoot
+		return acc, nil
+	}
+	return nil, nil
 }
 
 // GetAccount handler called by http.HandleFunc
@@ -86,7 +75,7 @@ func GetAccount(w http.ResponseWriter, r *http.Request) {
 	address := params["address"]
 
 	srv := service{}
-	_, err := srv.GetAccountByAddress(address)
+	account, err := srv.GetAccountByAddress(address)
 	if err != nil {
 		json.NewEncoder(w).Encode("Failed to retrieve acount detail due to: " + err.Error())
 	} else {
@@ -99,6 +88,5 @@ func GetAccount(w http.ResponseWriter, r *http.Request) {
 			log.Info().Msgf("Received Account detail for address: %s", account.Address)
 			json.NewEncoder(w).Encode(account)
 		}
-		account = Account{}
 	}
 }

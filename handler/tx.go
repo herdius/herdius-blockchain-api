@@ -2,12 +2,15 @@ package handler
 
 import (
 	"context"
+	"fmt"
+	"strconv"
 	"strings"
 
 	"encoding/json"
 	"net/http"
-	"time"
 
+	"github.com/herdius/herdius-blockchain-api/config"
+	nb "github.com/herdius/herdius-blockchain-api/network"
 	"github.com/herdius/herdius-blockchain-api/protobuf"
 
 	"log"
@@ -15,31 +18,11 @@ import (
 	"github.com/herdius/herdius-core/p2p/network"
 )
 
-var (
-	// newTxResponse variable holds the transaction response detail from Herdius blockchain.
-	// This is an inappropriate approach to hold data coming from other services.
-	// TODO: This needs to be switched to be getting handled in single context
-	// of client request. Once the request is served the context also needs to be closed.
-	newTxResponse = protobuf.TxResponse{}
-)
-
 // TXMessagePlugin will receive all Transaction specific messages.
 type TXMessagePlugin struct{ *network.Plugin }
 
-// Receive is Tx Receiver
-func (state *TXMessagePlugin) Receive(ctx *network.PluginContext) error {
-	switch msg := ctx.Message().(type) {
-	case *protobuf.TxResponse:
-		log.Printf("Tx ID: %v", msg.TxId)
-		log.Printf("Tx ID: %v", msg.Status)
-
-		newTxResponse = *msg
-	}
-	return nil
-}
-
 func (s *service) SendTxToBlockchain(txReq protobuf.TxRequest) (*protobuf.TxResponse, error) {
-	net, err := NB.builder.Build()
+	net, err := nb.GetNetworkBuilder().Build()
 	if err != nil {
 		log.Print(err)
 	}
@@ -47,18 +30,29 @@ func (s *service) SendTxToBlockchain(txReq protobuf.TxRequest) (*protobuf.TxResp
 	go net.Listen()
 	defer net.Close()
 
-	supervisorAddress := "tcp://localhost:3000"
+	configuration := config.GetConfiguration()
+
+	supervisorAddress := configuration.TCP + "://" + configuration.SupervisorHost + ":" + strconv.Itoa(configuration.SupervisorPort)
+
 	supervisorAdds := make([]string, 1)
 	supervisorAdds = append(supervisorAdds, supervisorAddress)
 	bootStrap(net, supervisorAdds)
 
 	ctx := network.WithSignMessage(context.Background(), true)
 
-	net.Broadcast(ctx, &txReq)
+	supervisorNode, _ := net.Client(supervisorAddress)
+	res, err := supervisorNode.Request(ctx, &txReq)
 
-	// VERY IMPORTANT TODO: Having the process sleep is not an efficient way to handle requests.
-	// This needs to be addressed by optimizing current P2P layer
-	time.Sleep(1 * time.Second)
+	if err != nil {
+		return nil, fmt.Errorf(fmt.Sprintf("Failed to find block due to :%v", err))
+	}
+
+	switch msg := res.(type) {
+	case *protobuf.TxResponse:
+		log.Printf("Tx ID: %v", msg.TxId)
+		log.Printf("Tx ID: %v", msg.Status)
+		return msg, nil
+	}
 
 	return nil, nil
 }
@@ -85,10 +79,9 @@ func SendTx(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		srv := service{}
-		srv.SendTxToBlockchain(txRequest)
+		newTxResponse, _ := srv.SendTxToBlockchain(txRequest)
 
 		json.NewEncoder(w).Encode(newTxResponse)
-		newTxResponse = protobuf.TxResponse{}
 		return
 	}
 
@@ -107,8 +100,11 @@ func SendTx(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	srv := service{}
-	srv.SendTxToBlockchain(txRequest)
+	newTxResponse, err := srv.SendTxToBlockchain(txRequest)
+	if err != nil {
+		json.NewEncoder(w).Encode(err.Error())
+	} else {
+		json.NewEncoder(w).Encode(newTxResponse)
+	}
 
-	json.NewEncoder(w).Encode(newTxResponse)
-	newTxResponse = protobuf.TxResponse{}
 }
