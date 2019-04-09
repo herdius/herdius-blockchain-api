@@ -64,7 +64,7 @@ func networkBuilder() *network.Builder {
 
 	builder := network.NewBuilder()
 	builder.SetKeys(keys)
-	builder.SetAddress(network.FormatAddress("tcp", host, uint16(port)))
+	builder.SetAddress(network.FormatAddress(configuration.TCP, host, uint16(port)))
 
 	return builder
 
