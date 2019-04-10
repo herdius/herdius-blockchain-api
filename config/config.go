@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"log"
 	"strconv"
 	"sync"
@@ -23,10 +22,6 @@ var once sync.Once
 func GetConfiguration() *detail {
 
 	once.Do(func() {
-		// Configure `export ENVIRONMENT=dev` for dev
-		// and `export ENVIRONMENT=prod` for prod environment
-		// in system bash file.
-		fmt.Println("Test it")
 		viper.SetConfigName("config")   // Config file name without extension
 		viper.AddConfigPath("./config") // Path to config file
 		err := viper.ReadInConfig()
