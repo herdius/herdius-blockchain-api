@@ -1,7 +1,9 @@
 package config
 
 import (
+	"fmt"
 	"log"
+	"strconv"
 	"sync"
 
 	"github.com/spf13/viper"
@@ -11,7 +13,6 @@ type detail struct {
 	SupervisorHost string
 	SupervisorPort int
 	TCP            string
-	ConnectionHost string
 	ConnectionPort int
 }
 
@@ -25,32 +26,27 @@ func GetConfiguration() *detail {
 		// Configure `export ENVIRONMENT=dev` for dev
 		// and `export ENVIRONMENT=prod` for prod environment
 		// in system bash file.
-
+		fmt.Println("Test it")
 		viper.SetConfigName("config")   // Config file name without extension
 		viper.AddConfigPath("./config") // Path to config file
 		err := viper.ReadInConfig()
 		if err != nil {
 			log.Printf("Config file not found: %v", err)
 		} else {
-			var port, connectionPort int
-			var host, connectionHost string
-			var tcp string
-			port = viper.GetInt("dev.supervisorport")
-			host = viper.GetString("dev.supervisorhost")
-			tcp = viper.GetString("dev.tcp")
-
-			connectionPort = viper.GetInt("dev.connectionport")
-			connectionHost = viper.GetString("dev.connectionhost")
 			configuration = &detail{
-				SupervisorHost: host,
-				SupervisorPort: port,
-				TCP:            tcp,
-				ConnectionHost: connectionHost,
-				ConnectionPort: connectionPort,
+				SupervisorHost: viper.GetString("dev.supervisorhost"),
+				SupervisorPort: viper.GetInt("dev.supervisorport"),
+				TCP:            viper.GetString("dev.tcp"),
+				ConnectionPort: viper.GetInt("dev.connectionport"),
 			}
 		}
 
 	})
 
 	return configuration
+}
+
+func (d *detail) GetSupervisorAddress() string {
+	supervisorAddress := d.TCP + "://" + d.SupervisorHost + ":" + strconv.Itoa(d.SupervisorPort)
+	return supervisorAddress
 }

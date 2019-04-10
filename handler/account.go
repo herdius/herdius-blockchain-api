@@ -5,11 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/herdius/herdius-blockchain-api/config"
-	nb "github.com/herdius/herdius-blockchain-api/network"
+	apiNet "github.com/herdius/herdius-blockchain-api/network"
 	"github.com/herdius/herdius-blockchain-api/protobuf"
 	protoplugin "github.com/herdius/herdius-blockchain-api/protobuf"
 	"github.com/herdius/herdius-core/p2p/network"
@@ -29,7 +28,7 @@ type Account struct {
 // Account details for a given account address
 func (s *service) GetAccountByAddress(accAddr string) (*Account, error) {
 
-	net, err := nb.GetNetworkBuilder().Build()
+	net, err := apiNet.GetNetworkBuilder().Build()
 	if err != nil {
 		log.Error().Msgf("Failed to build network:%v", err)
 	}
@@ -39,7 +38,7 @@ func (s *service) GetAccountByAddress(accAddr string) (*Account, error) {
 
 	configuration := config.GetConfiguration()
 
-	supervisorAddress := configuration.TCP + "://" + configuration.SupervisorHost + ":" + strconv.Itoa(configuration.SupervisorPort)
+	supervisorAddress := configuration.GetSupervisorAddress()
 
 	ctx := network.WithSignMessage(context.Background(), true)
 

@@ -34,7 +34,7 @@ func networkBuilder() *network.Builder {
 
 	configuration := config.GetConfiguration()
 	port := configuration.ConnectionPort
-	host := configuration.ConnectionHost
+	host := "localhost"
 
 	nodeAddress := host + ":" + strconv.Itoa(port)
 

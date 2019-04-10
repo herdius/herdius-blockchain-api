@@ -3,14 +3,13 @@ package handler
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"encoding/json"
 	"net/http"
 
 	"github.com/herdius/herdius-blockchain-api/config"
-	nb "github.com/herdius/herdius-blockchain-api/network"
+	apiNet "github.com/herdius/herdius-blockchain-api/network"
 	"github.com/herdius/herdius-blockchain-api/protobuf"
 
 	"log"
@@ -19,7 +18,7 @@ import (
 )
 
 func (s *service) SendTxToBlockchain(txReq protobuf.TxRequest) (*protobuf.TxResponse, error) {
-	net, err := nb.GetNetworkBuilder().Build()
+	net, err := apiNet.GetNetworkBuilder().Build()
 	if err != nil {
 		log.Print(err)
 	}
@@ -29,7 +28,7 @@ func (s *service) SendTxToBlockchain(txReq protobuf.TxRequest) (*protobuf.TxResp
 
 	configuration := config.GetConfiguration()
 
-	supervisorAddress := configuration.TCP + "://" + configuration.SupervisorHost + ":" + strconv.Itoa(configuration.SupervisorPort)
+	supervisorAddress := configuration.GetSupervisorAddress()
 
 	supervisorAdds := make([]string, 1)
 	supervisorAdds = append(supervisorAdds, supervisorAddress)

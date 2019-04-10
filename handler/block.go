@@ -9,7 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/herdius/herdius-blockchain-api/config"
-	nb "github.com/herdius/herdius-blockchain-api/network"
+	apiNet "github.com/herdius/herdius-blockchain-api/network"
 	"github.com/herdius/herdius-blockchain-api/protobuf"
 	protoplugin "github.com/herdius/herdius-blockchain-api/protobuf"
 	"github.com/herdius/herdius-core/p2p/log"
@@ -38,7 +38,7 @@ var (
 )
 
 func (s *service) GetBlockByHeight(height uint64) (*protobuf.BlockResponse, error) {
-	net, err := nb.GetNetworkBuilder().Build()
+	net, err := apiNet.GetNetworkBuilder().Build()
 	if err != nil {
 		return nil, fmt.Errorf(fmt.Sprintf("Failed to build network:%v", err))
 	}
@@ -48,7 +48,7 @@ func (s *service) GetBlockByHeight(height uint64) (*protobuf.BlockResponse, erro
 
 	configuration := config.GetConfiguration()
 
-	supervisorAddress := configuration.TCP + "://" + configuration.SupervisorHost + ":" + strconv.Itoa(configuration.SupervisorPort)
+	supervisorAddress := configuration.GetSupervisorAddress()
 
 	ctx := network.WithSignMessage(context.Background(), true)
 
@@ -56,7 +56,7 @@ func (s *service) GetBlockByHeight(height uint64) (*protobuf.BlockResponse, erro
 	res, err := supervisorNode.Request(ctx, &protoplugin.BlockHeightRequest{BlockHeight: height})
 
 	if err != nil {
-		return nil, fmt.Errorf(fmt.Sprintf("Failed to find block due to :%v", err))
+		return nil, fmt.Errorf(fmt.Sprintf("Failed to find block due to: %v", err))
 	}
 
 	switch msg := res.(type) {
