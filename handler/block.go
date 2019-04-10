@@ -6,28 +6,15 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/herdius/herdius-blockchain-api/config"
+	apiNet "github.com/herdius/herdius-blockchain-api/network"
 	"github.com/herdius/herdius-blockchain-api/protobuf"
 	protoplugin "github.com/herdius/herdius-blockchain-api/protobuf"
 	"github.com/herdius/herdius-core/p2p/log"
 	"github.com/herdius/herdius-core/p2p/network"
 )
-
-// NB is a Network Builder
-var NB *NetworkBuilder
-
-// Response Tracker from Blockchain
-var (
-	blockByHeight = 0
-	blockResponse = Block{}
-)
-
-func init() {
-	// Setup network specific configuration to call blockchain services
-	NB = CreateNetworkBuilder()
-}
 
 // Block will hold block detail retrieved from blockchain
 type Block struct {
@@ -40,7 +27,7 @@ type Block struct {
 
 // BlockI is an interface to provide block specific services
 type BlockI interface {
-	GetBlockByHeight(height uint64) error
+	GetBlockByHeight(height uint64) (*protobuf.BlockResponse, error)
 }
 
 // Service ...
@@ -50,50 +37,34 @@ var (
 	_ BlockI = (*service)(nil)
 )
 
-func (s *service) GetBlockByHeight(height uint64) error {
-	net, err := NB.builder.Build()
-	NB.GetNetworkBuilder()
+func (s *service) GetBlockByHeight(height uint64) (*protobuf.BlockResponse, error) {
+	net, err := apiNet.GetNetworkBuilder().Build()
 	if err != nil {
-		return fmt.Errorf(fmt.Sprintf("Failed to build network:%v", err))
+		return nil, fmt.Errorf(fmt.Sprintf("Failed to build network:%v", err))
 	}
+
 	go net.Listen()
 	defer net.Close()
 
-	peer := "tcp://localhost:3000"
-	peers := make([]string, 1)
-	peers = append(peers, peer)
-	bootStrap(net, peers)
+	configuration := config.GetConfiguration()
+
+	supervisorAddress := configuration.GetSupervisorAddress()
 
 	ctx := network.WithSignMessage(context.Background(), true)
 
-	net.Broadcast(ctx, &protoplugin.BlockHeightRequest{BlockHeight: height})
-	time.Sleep(2 * time.Second)
+	supervisorNode, _ := net.Client(supervisorAddress)
+	res, err := supervisorNode.Request(ctx, &protoplugin.BlockHeightRequest{BlockHeight: height})
 
-	// TODO: Need to have a better implementation rather than using
-	// the global variable blockByHeight
-	blockByHeight = 1
-	return nil
-}
-
-// BlockMessagePlugin will receive all Block specific messages.
-type BlockMessagePlugin struct{ *network.Plugin }
-
-// Receive handles block specific received messages
-func (state *BlockMessagePlugin) Receive(ctx *network.PluginContext) error {
-	switch msg := ctx.Message().(type) {
-	case *protobuf.BlockResponse:
-		log.Info().Msgf("Block Response: %v", msg)
-		log.Info().Msgf("Block blockByHeight: %v", blockByHeight)
-
-		blockResponse.BlockHeight = msg.BlockHeight
-		blockResponse.Transactions = msg.Transactions
-		blockResponse.Timestamp = msg.Time.Seconds
-		blockResponse.SupervisorAddress = msg.SupervisorAddress
-		blockByHeight = 0
-
-		log.Info().Msgf("Block Response: %v", blockResponse)
+	if err != nil {
+		return nil, fmt.Errorf(fmt.Sprintf("Failed to find block due to: %v", err))
 	}
-	return nil
+
+	switch msg := res.(type) {
+	case *protobuf.BlockResponse:
+		return msg, nil
+	}
+
+	return nil, nil
 }
 
 func bootStrap(net *network.Network, peers []string) {
@@ -101,10 +72,6 @@ func bootStrap(net *network.Network, peers []string) {
 		net.Bootstrap(peers...)
 	}
 }
-
-////////////////////////////////////////////////
-// Block Handlers
-///////////////////////////////////////////////
 
 // GetBlockByHeight handler
 func GetBlockByHeight(w http.ResponseWriter, r *http.Request) {
@@ -123,12 +90,23 @@ func GetBlockByHeight(w http.ResponseWriter, r *http.Request) {
 	}
 
 	srv := service{}
-	err = srv.GetBlockByHeight(uint64(height))
+	block, err := srv.GetBlockByHeight(uint64(height))
 	if err != nil {
 		fmt.Fprint(w, err)
+	}
+	if block.Time != nil {
+		b := Block{
+			BlockHeight:       block.BlockHeight,
+			Timestamp:         block.Time.Seconds,
+			Transactions:      block.Transactions,
+			SupervisorAddress: block.SupervisorAddress,
+			StateRoot:         block.StateRoot,
+		}
+		log.Info().Msgf("Processed for Block Height: %d", block.BlockHeight)
+		fmt.Fprint(w, b)
+
 	} else {
-		log.Info().Msgf("Processed for Block Height: %d", blockResponse.BlockHeight)
-		fmt.Fprint(w, blockResponse)
+		fmt.Fprint(w, "Block not found for block height: "+heightJSON)
 	}
 
 }

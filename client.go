@@ -2,14 +2,13 @@ package main
 
 import (
 	"bytes"
+	b64 "encoding/base64"
+	"encoding/json"
 	"flag"
 	"io/ioutil"
 	"log"
 	"net/http"
-"strings"
-
-	b64 "encoding/base64"
-	"encoding/json"
+	"strings"
 
 	"github.com/herdius/herdius-blockchain-api/protobuf"
 	"github.com/herdius/herdius-core/p2p/key"
@@ -21,19 +20,24 @@ It uses the keys that are loaded during blockchain startup
 */
 
 func main() {
-	txFlag := flag.String("type", "register", "txType")
-	flag.Parse()
 
-	txType := *txFlag
-	if strings.EqualFold(txType, "register") {
-		sendAccountRegisterTx()
-	}
-	if strings.EqualFold(txType, "value") {
-		postTx()
+	var host = flag.String("host", "localhost", "host to listen to")
+	var txType = flag.String("txtype", "value", "transaction type")
+	flag.Parse()
+	var endpoint string
+	endpoint = *host
+
+	endpoint = "http://" + endpoint + ":80/tx"
+	log.Println("endpoint:", endpoint)
+
+	if strings.EqualFold(*txType, "register") {
+		sendAccountRegisterTx(endpoint)
+	} else {
+		postTx(endpoint)
 	}
 
 }
-func sendAccountRegisterTx() {
+func sendAccountRegisterTx(endpoint string) {
 	// Create key pairs and store in a local file
 	senderPrivKey, err := key.LoadOrGenNodeKey("./tempKey.json")
 	if err != nil {
@@ -76,8 +80,7 @@ func sendAccountRegisterTx() {
 	if err != nil {
 		log.Fatalf("Failed to Marshal %v", err)
 	}
-
-	response, err := http.Post("http://localhost:80/tx", "application/json", bytes.NewBuffer(txJSON))
+	response, err := http.Post(endpoint, "application/json", bytes.NewBuffer(txJSON))
 	if err != nil {
 		log.Fatalf("Failed to Marshal %v", err)
 	}
@@ -97,7 +100,7 @@ func sendAccountRegisterTx() {
 	log.Println(txResponse.Status)
 }
 
-func postTx() {
+func postTx(endpoint string) {
 	// Copied the user id's from herdius-core package
 	dataPath := "./testdata/secp205k1Accts/"
 	senderPrivKey, err := key.LoadOrGenNodeKey(dataPath + "1_peer_id.json")
@@ -156,15 +159,6 @@ func postTx() {
 	if err != nil {
 		log.Fatalf("Failed to Marshal %v", err)
 	}
-
-	var endpoint string
-	if len(os.Args) > 1 {
-		endpoint = os.Args[1]
-	} else {
-		endpoint = "localhost"
-	}
-	endpoint = "http://" + endpoint + ":80/tx"
-	log.Println("endpoint:", endpoint)
 
 	response, err := http.Post(endpoint, "application/json", bytes.NewBuffer(txJSON))
 	if err != nil {

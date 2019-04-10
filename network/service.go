@@ -1,44 +1,39 @@
-package handler
+package network
 
 import (
 	"os/user"
 	"strconv"
+	"sync"
 
+	"github.com/herdius/herdius-blockchain-api/config"
 	apiProtobuf "github.com/herdius/herdius-blockchain-api/protobuf"
-	blockProtobuf "github.com/herdius/herdius-core/blockchain/protobuf"
 	"github.com/herdius/herdius-core/p2p/crypto"
 	keystore "github.com/herdius/herdius-core/p2p/key"
 
 	"github.com/herdius/herdius-core/p2p/log"
 	"github.com/herdius/herdius-core/p2p/network"
-	"github.com/herdius/herdius-core/p2p/network/discovery"
 	"github.com/herdius/herdius-core/p2p/types/opcode"
 )
 
-// NetworkBuilder ...
-type NetworkBuilder struct {
-	builder *network.Builder
+var builder *network.Builder
+var once sync.Once
+
+// GetNetworkBuilder will instantiate network builder only once
+func GetNetworkBuilder() *network.Builder {
+	once.Do(func() {
+		builder = networkBuilder()
+	})
+	return builder
 }
 
-// CreateNetworkBuilder ...
-func CreateNetworkBuilder() *NetworkBuilder {
-	return &NetworkBuilder{
-		builder: networkBuilder(),
-	}
-}
-
-// GetNetworkBuilder ...
-func (nb NetworkBuilder) GetNetworkBuilder() *network.Builder {
-	return nb.builder
-}
-
-// NetworkBuilder ...
 func networkBuilder() *network.Builder {
 	user, err := user.Current()
 	if err != nil {
 		panic(err)
 	}
-	port := 5555
+
+	configuration := config.GetConfiguration()
+	port := configuration.ConnectionPort
 	host := "localhost"
 
 	nodeAddress := host + ":" + strconv.Itoa(port)
@@ -60,7 +55,6 @@ func networkBuilder() *network.Builder {
 		PubKey:     pubKey,
 	}
 
-	opcode.RegisterMessageType(opcode.Opcode(1112), &blockProtobuf.ConnectionMessage{})
 	opcode.RegisterMessageType(opcode.Opcode(1113), &apiProtobuf.BlockHeightRequest{})
 	opcode.RegisterMessageType(opcode.Opcode(1114), &apiProtobuf.BlockResponse{})
 	opcode.RegisterMessageType(opcode.Opcode(1115), &apiProtobuf.AccountRequest{})
@@ -70,13 +64,8 @@ func networkBuilder() *network.Builder {
 
 	builder := network.NewBuilder()
 	builder.SetKeys(keys)
-	builder.SetAddress(network.FormatAddress("tcp", host, uint16(port)))
+	builder.SetAddress(network.FormatAddress(configuration.TCP, host, uint16(port)))
 
-	// // Register peer discovery plugin.
-	builder.AddPlugin(new(discovery.Plugin))
-	builder.AddPlugin(new(BlockMessagePlugin))
-	builder.AddPlugin(new(AccountMessagePlugin))
-	builder.AddPlugin(new(TXMessagePlugin))
 	return builder
 
 }
