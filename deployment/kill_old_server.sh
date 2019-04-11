@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 set -x
 
 echo "attempting to kill old server proc"
