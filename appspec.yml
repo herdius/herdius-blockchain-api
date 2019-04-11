@@ -1,0 +1,15 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /root/go/src/github.com/herdius/herdius-blockchain-api
+    overwrite: true
+hooks:
+  BeforeInstall:
+    - location: deployment/kill_old_server.sh
+      timeout: 10
+      runas: root
+  AfterInstall:
+     - location: deployment/start_server.sh
+       timeout: 60
+       runas: root
