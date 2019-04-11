@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -38,7 +39,11 @@ var (
 )
 
 func (s *service) GetBlockByHeight(height uint64) (*protobuf.BlockResponse, error) {
-	net, err := apiNet.GetNetworkBuilder().Build()
+	env := os.Getenv("ENV")
+	if env == "" {
+		env = "dev"
+	}
+	net, err := apiNet.GetNetworkBuilder(env).Build()
 	if err != nil {
 		return nil, fmt.Errorf(fmt.Sprintf("Failed to build network:%v", err))
 	}
@@ -46,7 +51,7 @@ func (s *service) GetBlockByHeight(height uint64) (*protobuf.BlockResponse, erro
 	go net.Listen()
 	defer net.Close()
 
-	configuration := config.GetConfiguration()
+	configuration := config.GetConfiguration(env)
 
 	supervisorAddress := configuration.GetSupervisorAddress()
 

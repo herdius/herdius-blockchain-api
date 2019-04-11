@@ -1,6 +1,7 @@
 package network
 
 import (
+	"fmt"
 	"os/user"
 	"strconv"
 	"sync"
@@ -19,24 +20,24 @@ var builder *network.Builder
 var once sync.Once
 
 // GetNetworkBuilder will instantiate network builder only once
-func GetNetworkBuilder() *network.Builder {
+func GetNetworkBuilder(env string) *network.Builder {
 	once.Do(func() {
-		builder = networkBuilder()
+		builder = networkBuilder(env)
 	})
 	return builder
 }
 
-func networkBuilder() *network.Builder {
+func networkBuilder(env string) *network.Builder {
 	user, err := user.Current()
 	if err != nil {
 		panic(err)
 	}
 
-	configuration := config.GetConfiguration()
-	port := configuration.ConnectionPort
-	host := "localhost"
+	configuration := config.GetConfiguration(env)
+	fmt.Println("SelfIP:", configuration.SelfIP)
+	fmt.Println("SupervisorIP:", configuration.SupervisorHost)
 
-	nodeAddress := host + ":" + strconv.Itoa(port)
+	nodeAddress := configuration.SelfIP + ":" + strconv.Itoa(configuration.ConnectionPort)
 
 	nodekey, err := keystore.LoadOrGenNodeKey(user.HomeDir + "/" + nodeAddress + "_peer_id.json")
 
@@ -64,7 +65,7 @@ func networkBuilder() *network.Builder {
 
 	builder := network.NewBuilder()
 	builder.SetKeys(keys)
-	builder.SetAddress(network.FormatAddress(configuration.TCP, host, uint16(port)))
+	builder.SetAddress(network.FormatAddress(configuration.TCP, configuration.SelfIP, uint16(configuration.ConnectionPort)))
 
 	return builder
 
