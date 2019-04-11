@@ -17,11 +17,12 @@ import (
 
 // Account : Account Detail
 type Account struct {
-	Nonce       uint64 `json:"nonce"`
-	Address     string `json:"address"`
-	Balance     uint64 `json:"balance"`
-	StorageRoot string `json:"storageRoot"`
-	PublickKey  string `json:"publicKey"`
+	Nonce       uint64            `json:"nonce"`
+	Address     string            `json:"address"`
+	Balance     uint64            `json:"balance"`
+	StorageRoot string            `json:"storageRoot"`
+	PublickKey  string            `json:"publicKey"`
+	Balances    map[string]uint64 // Balances will store balances of assets e.g. [BTC]=10 or [HER]=1000
 }
 
 // GetAccountByAddress broadcasts a request to the supervisor to retrieve
@@ -37,13 +38,10 @@ func (s *service) GetAccountByAddress(accAddr string) (*Account, error) {
 	defer net.Close()
 
 	configuration := config.GetConfiguration()
-
 	supervisorAddress := configuration.GetSupervisorAddress()
 
 	ctx := network.WithSignMessage(context.Background(), true)
-
 	supervisorNode, _ := net.Client(supervisorAddress)
-
 	res, err := supervisorNode.Request(ctx, &protoplugin.AccountRequest{Address: accAddr})
 
 	if err != nil {
@@ -58,6 +56,7 @@ func (s *service) GetAccountByAddress(accAddr string) (*Account, error) {
 		acc.Nonce = msg.Nonce
 		acc.PublickKey = msg.PublicKey
 		acc.StorageRoot = msg.StorageRoot
+		acc.Balances = msg.Balances
 		return acc, nil
 	}
 	return nil, nil
