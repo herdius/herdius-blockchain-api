@@ -28,7 +28,7 @@ func main() {
 	var endpoint string
 	endpoint = *host
 
-	endpoint = "http://" + endpoint + ":8082/tx"
+	endpoint = "http://" + endpoint + ":80/tx"
 	log.Println("endpoint:", endpoint)
 
 	if strings.EqualFold(*txType, "update") {
