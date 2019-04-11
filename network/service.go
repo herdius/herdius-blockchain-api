@@ -19,22 +19,22 @@ var builder *network.Builder
 var once sync.Once
 
 // GetNetworkBuilder will instantiate network builder only once
-func GetNetworkBuilder() *network.Builder {
+func GetNetworkBuilder(env string) *network.Builder {
 	once.Do(func() {
-		builder = networkBuilder()
+		builder = networkBuilder(env)
 	})
 	return builder
 }
 
-func networkBuilder() *network.Builder {
+func networkBuilder(env string) *network.Builder {
 	user, err := user.Current()
 	if err != nil {
 		panic(err)
 	}
 
-	configuration := config.GetConfiguration()
+	configuration := config.GetConfiguration(env)
 	port := configuration.ConnectionPort
-	host := "localhost"
+	host := configuration.SelfIP
 
 	nodeAddress := host + ":" + strconv.Itoa(port)
 

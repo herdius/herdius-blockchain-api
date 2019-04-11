@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	"encoding/json"
@@ -18,7 +19,12 @@ import (
 )
 
 func (s *service) SendTxToBlockchain(txReq protobuf.TxRequest) (*protobuf.TxResponse, error) {
-	net, err := apiNet.GetNetworkBuilder().Build()
+
+	env := os.Getenv("ENV")
+	if env == "" {
+		env = "dev"
+	}
+	net, err := apiNet.GetNetworkBuilder(env).Build()
 	if err != nil {
 		log.Print(err)
 	}
@@ -26,7 +32,7 @@ func (s *service) SendTxToBlockchain(txReq protobuf.TxRequest) (*protobuf.TxResp
 	go net.Listen()
 	defer net.Close()
 
-	configuration := config.GetConfiguration()
+	configuration := config.GetConfiguration(env)
 
 	supervisorAddress := configuration.GetSupervisorAddress()
 

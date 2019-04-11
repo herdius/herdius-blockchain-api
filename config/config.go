@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 	"sync"
@@ -13,14 +14,14 @@ type detail struct {
 	SupervisorPort int
 	TCP            string
 	ConnectionPort int
+	SelfIP         string
 }
 
 var configuration *detail
 var once sync.Once
 
 // GetConfiguration ...
-func GetConfiguration() *detail {
-
+func GetConfiguration(env string) *detail {
 	once.Do(func() {
 		viper.SetConfigName("config")   // Config file name without extension
 		viper.AddConfigPath("./config") // Path to config file
@@ -29,13 +30,13 @@ func GetConfiguration() *detail {
 			log.Printf("Config file not found: %v", err)
 		} else {
 			configuration = &detail{
-				SupervisorHost: viper.GetString("dev.supervisorhost"),
-				SupervisorPort: viper.GetInt("dev.supervisorport"),
-				TCP:            viper.GetString("dev.tcp"),
-				ConnectionPort: viper.GetInt("dev.connectionport"),
+				SupervisorHost: viper.GetString(fmt.Sprint(env, ".supervisorhost")),
+				SupervisorPort: viper.GetInt(fmt.Sprint(env, ".supervisorport")),
+				TCP:            viper.GetString(fmt.Sprint(env, ".tcp")),
+				ConnectionPort: viper.GetInt(fmt.Sprint(env, ".connectionport")),
+				SelfIP:         viper.GetString(fmt.Sprint(env, ".selfip")),
 			}
 		}
-
 	})
 
 	return configuration

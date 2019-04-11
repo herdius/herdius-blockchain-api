@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/herdius/herdius-blockchain-api/config"
@@ -29,7 +30,11 @@ type Account struct {
 // Account details for a given account address
 func (s *service) GetAccountByAddress(accAddr string) (*Account, error) {
 
-	net, err := apiNet.GetNetworkBuilder().Build()
+	env := os.Getenv("ENV")
+	if env == "" {
+		env = "dev"
+	}
+	net, err := apiNet.GetNetworkBuilder(env).Build()
 	if err != nil {
 		log.Error().Msgf("Failed to build network:%v", err)
 	}
