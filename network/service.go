@@ -1,6 +1,7 @@
 package network
 
 import (
+	"fmt"
 	"os/user"
 	"strconv"
 	"sync"
@@ -33,10 +34,10 @@ func networkBuilder(env string) *network.Builder {
 	}
 
 	configuration := config.GetConfiguration(env)
-	port := configuration.ConnectionPort
-	host := configuration.SelfIP
+	fmt.Println("SelfIP:", configuration.SelfIP)
+	fmt.Println("SupervisorIP:", configuration.SupervisorHost)
 
-	nodeAddress := host + ":" + strconv.Itoa(port)
+	nodeAddress := configuration.SelfIP + ":" + strconv.Itoa(configuration.ConnectionPort)
 
 	nodekey, err := keystore.LoadOrGenNodeKey(user.HomeDir + "/" + nodeAddress + "_peer_id.json")
 
@@ -64,7 +65,7 @@ func networkBuilder(env string) *network.Builder {
 
 	builder := network.NewBuilder()
 	builder.SetKeys(keys)
-	builder.SetAddress(network.FormatAddress(configuration.TCP, host, uint16(port)))
+	builder.SetAddress(network.FormatAddress(configuration.TCP, configuration.SelfIP, uint16(configuration.ConnectionPort)))
 
 	return builder
 

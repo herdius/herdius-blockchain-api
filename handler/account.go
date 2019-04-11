@@ -42,7 +42,7 @@ func (s *service) GetAccountByAddress(accAddr string) (*Account, error) {
 	go net.Listen()
 	defer net.Close()
 
-	configuration := config.GetConfiguration()
+	configuration := config.GetConfiguration(env)
 	supervisorAddress := configuration.GetSupervisorAddress()
 
 	ctx := network.WithSignMessage(context.Background(), true)

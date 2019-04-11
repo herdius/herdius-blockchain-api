@@ -22,6 +22,9 @@ var once sync.Once
 
 // GetConfiguration ...
 func GetConfiguration(env string) *detail {
+	if env != "staging" {
+		env = "dev"
+	}
 	once.Do(func() {
 		viper.SetConfigName("config")   // Config file name without extension
 		viper.AddConfigPath("./config") // Path to config file
