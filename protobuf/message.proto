@@ -34,9 +34,10 @@ message AccountRequest {
 message AccountResponse {
   string address = 1;
   uint64 nonce = 2;
-  uint64 balance = 3;
-  string storage_root = 4;
-  string public_key   = 5;
+  string storage_root = 3;
+  string public_key   = 4;
+  uint64 balance = 5;
+  map<string,uint64> balances = 6;
 }
 
 message Tx {

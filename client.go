@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/herdius/herdius-blockchain-api/protobuf"
+	"github.com/herdius/herdius-core/crypto/secp256k1"
 	"github.com/herdius/herdius-core/p2p/key"
 )
 
@@ -30,7 +31,7 @@ func main() {
 	endpoint = "http://" + endpoint + ":80/tx"
 	log.Println("endpoint:", endpoint)
 
-	if strings.EqualFold(*txType, "register") {
+	if strings.EqualFold(*txType, "update") {
 		sendAccountRegisterTx(endpoint)
 	} else {
 		postTx(endpoint)
@@ -45,23 +46,26 @@ func sendAccountRegisterTx(endpoint string) {
 	}
 
 	sendPubKey := senderPrivKey.PubKey()
-	senderB64 := b64.StdEncoding.EncodeToString(sendPubKey.Bytes())
+	var pubkeyBytes secp256k1.PubKeySecp256k1
+	pubkeyBytes = sendPubKey.(secp256k1.PubKeySecp256k1)
+
+	senderB64 := b64.StdEncoding.EncodeToString(pubkeyBytes[:])
 	senderAddress := sendPubKey.GetAddress()
-	msg := "Register my account"
+	log.Println("Account update request : " + senderAddress)
+	msg := "Update my account"
 	asset := &protobuf.Asset{
 		Category: "crypto",
 		Symbol:   "HER",
-
-		Network: "Herdius",
-		Value:   0,
-		Fee:     0,
-		Nonce:   0,
+		Network:  "Herdius",
+		Value:    0,
+		Fee:      0,
+		Nonce:    1,
 	}
 	tx := protobuf.Tx{
 		SenderAddress: senderAddress,
 		SenderPubkey:  senderB64,
 		Message:       msg,
-		Type:          "register",
+		Type:          "update",
 		Asset:         asset,
 	}
 
@@ -113,11 +117,17 @@ func postTx(endpoint string) {
 	}
 
 	sendPubKey := senderPrivKey.PubKey()
-	senderB64 := b64.StdEncoding.EncodeToString(sendPubKey.Bytes())
+	var pubkeyBytes secp256k1.PubKeySecp256k1
+	pubkeyBytes = sendPubKey.(secp256k1.PubKeySecp256k1)
+
+	senderB64 := b64.StdEncoding.EncodeToString(pubkeyBytes[:])
+
 	senderAddress := sendPubKey.GetAddress()
 
 	recPubKey := recPrivKey.PubKey()
 	recAddress := recPubKey.GetAddress()
+	log.Println("Sender Address: " + senderAddress)
+	log.Println("Receiver Address: " + recAddress)
 
 	msg := "Send Her Token"
 
@@ -130,7 +140,7 @@ func postTx(endpoint string) {
 		Symbol:   "HER",
 
 		Network: "Herdius",
-		Value:   1,
+		Value:   100,
 		Fee:     0,
 		Nonce:   1,
 	}

@@ -63,8 +63,8 @@ func SendTx(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if tx type is account registration
-	if len(txRequest.Tx.Type) > 0 && strings.EqualFold(txRequest.Tx.Type, "register") {
+	// Check if tx type is account update
+	if len(txRequest.Tx.Type) > 0 && strings.EqualFold(txRequest.Tx.Type, "update") {
 
 		if len(txRequest.Tx.SenderAddress) == 0 ||
 			len(txRequest.Tx.Sign) == 0 ||
