@@ -2,7 +2,7 @@ version: 0.0
 os: linux
 files:
   - source: /
-    destination: /root/go/ec2-user/go/src/github.com/herdius/herdius-blockchain-api
+    destination: /root/go/src/github.com/herdius/herdius-blockchain-api
     overwrite: true
 hooks:
   BeforeInstall:
