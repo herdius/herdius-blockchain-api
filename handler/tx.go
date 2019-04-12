@@ -178,7 +178,7 @@ func (t *TxService) GetTx(id string) (*protobuf.TxDetailResponse, error) {
 
 	if err != nil {
 		log.Println("Failed to get tx detail due to: " + err.Error())
-		return nil, fmt.Errorf(fmt.Sprintf("Failed to get tx detail due to: %v", err))
+		return nil, fmt.Errorf("Failed to get tx detail due to: %v", err)
 	}
 
 	switch msg := res.(type) {
