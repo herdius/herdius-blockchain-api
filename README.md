@@ -27,6 +27,16 @@ TODO
 
 #### `GET` account details
 
+Syntax:
+```
+curl http://<IP of API node>:<port>/account/<account address>
+
+# Eg. connect to Staging API node
+curl http://54.158.10.209:80/account/HPNMnZc9eNA7PzEMRWVqXwzPqieSRLzuyf
+# Eg. connect to local API server
+curl http://localhost:80/account/HPNMnZc9eNA7PzEMRWVqXwzPqieSRLzuyf
+```
+
 #### `GET` transaction details
 
 #### `GET` block details
