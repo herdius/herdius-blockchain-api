@@ -63,7 +63,7 @@ func networkBuilder(env string) *network.Builder {
 	opcode.RegisterMessageType(opcode.Opcode(1117), &apiProtobuf.TxRequest{})
 	opcode.RegisterMessageType(opcode.Opcode(1118), &apiProtobuf.TxResponse{})
 
-	builder := network.NewBuilder()
+	builder := network.NewBuilder(env)
 	builder.SetKeys(keys)
 	builder.SetAddress(network.FormatAddress(configuration.TCP, configuration.SelfIP, uint16(configuration.ConnectionPort)))
 
