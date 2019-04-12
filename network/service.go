@@ -62,6 +62,8 @@ func networkBuilder(env string) *network.Builder {
 	opcode.RegisterMessageType(opcode.Opcode(1116), &apiProtobuf.AccountResponse{})
 	opcode.RegisterMessageType(opcode.Opcode(1117), &apiProtobuf.TxRequest{})
 	opcode.RegisterMessageType(opcode.Opcode(1118), &apiProtobuf.TxResponse{})
+	opcode.RegisterMessageType(opcode.Opcode(1119), &apiProtobuf.TxDetailRequest{})
+	opcode.RegisterMessageType(opcode.Opcode(1120), &apiProtobuf.TxDetailResponse{})
 
 	builder := network.NewBuilder()
 	builder.SetKeys(keys)

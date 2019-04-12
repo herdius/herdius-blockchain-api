@@ -38,6 +38,7 @@ func LaunchServer() {
 	router.HandleFunc("/account/{address}", handler.GetAccount).Methods("GET")
 	router.HandleFunc("/block/{height}", handler.GetBlockByHeight).Methods("GET")
 	router.HandleFunc("/tx", handler.SendTx).Methods("POST")
+	router.HandleFunc("/tx/{id}", handler.GetTx).Methods("GET")
 
 	// Run our server in a goroutine so that it doesn't block.
 	go func() {
