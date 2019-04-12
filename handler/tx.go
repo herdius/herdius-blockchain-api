@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/herdius/herdius-blockchain-api/config"
 	apiNet "github.com/herdius/herdius-blockchain-api/network"
 	"github.com/herdius/herdius-blockchain-api/protobuf"
@@ -109,4 +110,81 @@ func SendTx(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(newTxResponse)
 	}
 
+}
+
+// GetTx will retrieve a transaction detail from blockchain
+// for a give tx id
+func GetTx(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	if len(params["id"]) == 0 {
+		json.NewEncoder(w).Encode("Request invalid, 'id' param missing\n")
+		return
+	}
+
+	id := params["id"]
+
+	service := TxService{}
+	txDetailRes, err := service.GetTx(id)
+	if err != nil {
+		json.NewEncoder(w).Encode("Failed to retrieve Tx detail for id: " + id)
+	} else {
+		json.NewEncoder(w).Encode(txDetailRes)
+	}
+
+}
+
+// TxServiceI is transaction service interface over blockchain
+type TxServiceI interface {
+	GetTx(id string) (*protobuf.TxDetailResponse, error)
+}
+
+// TxService ...
+type TxService struct{}
+
+var (
+	_ TxServiceI = (*TxService)(nil)
+)
+
+// GetTx ...
+func (t *TxService) GetTx(id string) (*protobuf.TxDetailResponse, error) {
+	env := os.Getenv("ENV")
+	if env == "" {
+		env = "dev"
+	}
+	net, err := apiNet.GetNetworkBuilder(env).Build()
+	if err != nil {
+		log.Print(err)
+	}
+
+	go net.Listen()
+	defer net.Close()
+
+	configuration := config.GetConfiguration(env)
+
+	supervisorAddress := configuration.GetSupervisorAddress()
+
+	supervisorAdds := make([]string, 1)
+	supervisorAdds = append(supervisorAdds, supervisorAddress)
+	bootStrap(net, supervisorAdds)
+
+	ctx := network.WithSignMessage(context.Background(), true)
+
+	supervisorNode, _ := net.Client(supervisorAddress)
+
+	txDetailReq := protobuf.TxDetailRequest{
+		TxId: id,
+	}
+	res, err := supervisorNode.Request(ctx, &txDetailReq)
+
+	if err != nil {
+		log.Println("Failed to get tx detail due to: " + err.Error())
+		return nil, fmt.Errorf(fmt.Sprintf("Failed to get tx detail due to: %v", err))
+	}
+
+	switch msg := res.(type) {
+	case *protobuf.TxDetailResponse:
+		log.Printf("Tx Detail: %v", msg)
+		return msg, nil
+	}
+	return nil, nil
 }

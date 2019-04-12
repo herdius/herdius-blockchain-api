@@ -89,4 +89,5 @@ message TxDetailResponse {
     string tx_id            = 1;
     Tx tx                   = 2;
     Timestamp creationDt    = 3;
+    uint64 block_id         = 4;
 }
