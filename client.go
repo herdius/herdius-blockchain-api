@@ -30,7 +30,7 @@ func main() {
 	endpoint = "http://" + endpoint + ":80/tx"
 	log.Println("endpoint:", endpoint)
 
-	if strings.EqualFold(*txType, "register") {
+	if strings.EqualFold(*txType, "update") {
 		sendAccountRegisterTx(endpoint)
 	} else {
 		postTx(endpoint)
@@ -61,7 +61,7 @@ func sendAccountRegisterTx(endpoint string) {
 		SenderAddress: senderAddress,
 		SenderPubkey:  senderB64,
 		Message:       msg,
-		Type:          "register",
+		Type:          "update",
 		Asset:         asset,
 	}
 
