@@ -26,7 +26,7 @@ type Account struct {
 
 // GetAccountByAddress broadcasts a request to the supervisor to retrieve
 // Account details for a given account address
-func (s *service) GetAccountByAddress(accAddr string, net network.Network, env string) (*Account, error) {
+func (s *service) GetAccountByAddress(accAddr string, net *network.Network, env string) (*Account, error) {
 	fmt.Println("youve made it here")
 
 	configuration := config.GetConfiguration(env)
@@ -66,7 +66,7 @@ func (s *service) GetAccountByAddress(accAddr string, net network.Network, env s
 }
 
 // GetAccount handler called by http.HandleFunc
-func GetAccount(w http.ResponseWriter, r *http.Request, net network.Network, env string) {
+func GetAccount(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
 	params := mux.Vars(r)
 	if len(params["address"]) == 0 {
 		json.NewEncoder(w).Encode("Request invalid, 'address' param missing\n")

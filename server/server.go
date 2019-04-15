@@ -57,7 +57,7 @@ func LaunchServer() {
 
 	router.HandleFunc("/account/{address}",
 		func(w http.ResponseWriter, r *http.Request) {
-			handler.GetAccount(w, r, *net, env)
+			handler.GetAccount(w, r, net, env)
 		}).Methods("GET")
 
 	router.HandleFunc("/block/{height}", handler.GetBlockByHeight).Methods("GET")
