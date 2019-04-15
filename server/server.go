@@ -11,6 +11,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/herdius/herdius-blockchain-api/handler"
+	"github.com/herdius/herdius-blockchain-api/network"
 )
 
 func main() {
@@ -35,7 +36,27 @@ func LaunchServer() {
 		Handler:      router,
 	}
 
-	router.HandleFunc("/account/{address}", handler.GetAccount).Methods("GET")
+	env := os.Getenv("ENV")
+	if env == "" {
+		env = "dev"
+	}
+	builder := network.GetNetworkBuilder(env)
+	net, err := builder.Build()
+	if err != nil {
+		log.Fatalf("Failed to build network:%v", err)
+	}
+	if net.NumPeers <= 0 {
+		log.Fatalf("No peers discovered in network")
+	}
+
+	go net.Listen()
+	defer net.Close()
+
+	router.HandleFunc("/account/{address}",
+		func(w http.ResponseWriter, r *http.Request) {
+			handler.GetAccount(w, r, *net, env)
+		}).Methods("GET")
+
 	router.HandleFunc("/block/{height}", handler.GetBlockByHeight).Methods("GET")
 	router.HandleFunc("/tx", handler.SendTx).Methods("POST")
 	router.HandleFunc("/tx/{id}", handler.GetTx).Methods("GET")
