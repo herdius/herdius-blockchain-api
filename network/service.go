@@ -46,7 +46,6 @@ func networkBuilder(env string) *network.Builder {
 	}
 
 	privKey := nodekey.PrivKey
-
 	pubKey := privKey.PubKey()
 
 	keys := &crypto.KeyPair{

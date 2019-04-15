@@ -39,7 +39,7 @@ func (s *service) SendTxToBlockchain(txReq protobuf.TxRequest) (*protobuf.TxResp
 
 	supervisorAdds := make([]string, 1)
 	supervisorAdds = append(supervisorAdds, supervisorAddress)
-	bootStrap(net, supervisorAdds)
+	BootStrap(net, supervisorAdds)
 
 	ctx := network.WithSignMessage(context.Background(), true)
 
@@ -165,7 +165,7 @@ func (t *TxService) GetTx(id string) (*protobuf.TxDetailResponse, error) {
 
 	supervisorAdds := make([]string, 1)
 	supervisorAdds = append(supervisorAdds, supervisorAddress)
-	bootStrap(net, supervisorAdds)
+	BootStrap(net, supervisorAdds)
 
 	ctx := network.WithSignMessage(context.Background(), true)
 

@@ -72,7 +72,7 @@ func (s *service) GetBlockByHeight(height uint64) (*protobuf.BlockResponse, erro
 	return nil, nil
 }
 
-func bootStrap(net *network.Network, peers []string) {
+func BootStrap(net *network.Network, peers []string) {
 	if len(peers) > 0 {
 		net.Bootstrap(peers...)
 	}

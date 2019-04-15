@@ -27,18 +27,30 @@ type Account struct {
 // GetAccountByAddress broadcasts a request to the supervisor to retrieve
 // Account details for a given account address
 func (s *service) GetAccountByAddress(accAddr string, net network.Network, env string) (*Account, error) {
+	fmt.Println("youve made it here")
 
 	configuration := config.GetConfiguration(env)
 	supervisorAddress := configuration.GetSupervisorAddress()
 
 	ctx := network.WithSignMessage(context.Background(), true)
-	supervisorNode, _ := net.Client(supervisorAddress)
-	res, err := supervisorNode.Request(ctx, &protoplugin.AccountRequest{Address: accAddr})
-
+	fmt.Println("and here")
+	supervisorNode, err := net.Client(supervisorAddress)
 	if err != nil {
-		return nil, fmt.Errorf(fmt.Sprintf("Failed to find block due to :%v", err))
+		return nil, fmt.Errorf("failed to create client: %v", err)
+	}
+	if supervisorNode.Address == "" {
+		fmt.Println("empty supervisornode:", supervisorNode)
+	}
+	fmt.Println("supervisor localaddr():", supervisorNode.LocalAddr())
+	fmt.Println("supervisor remoteaddr():", supervisorNode.RemoteAddr())
+	fmt.Println("accAddr:", accAddr)
+
+	res, err := supervisorNode.Request(ctx, &protoplugin.AccountRequest{Address: accAddr})
+	if err != nil {
+		return nil, fmt.Errorf(fmt.Sprintf("Failed to find block due to: %v", err))
 	}
 
+	fmt.Println("now here")
 	switch msg := res.(type) {
 	case *protobuf.AccountResponse:
 		acc := &Account{}

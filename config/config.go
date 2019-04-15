@@ -46,6 +46,5 @@ func GetConfiguration(env string) *detail {
 }
 
 func (d *detail) GetSupervisorAddress() string {
-	supervisorAddress := d.TCP + "://" + d.SupervisorHost + ":" + strconv.Itoa(d.SupervisorPort)
-	return supervisorAddress
+	return d.TCP + "://" + d.SupervisorHost + ":" + strconv.Itoa(d.SupervisorPort)
 }
