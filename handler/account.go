@@ -43,14 +43,14 @@ func (s *service) GetAccountByAddress(accAddr string, net network.Network, env s
 	}
 	fmt.Println("supervisor localaddr():", supervisorNode.LocalAddr())
 	fmt.Println("supervisor remoteaddr():", supervisorNode.RemoteAddr())
-	fmt.Println("accAddr:", accAddr)
+	fmt.Println("can make it here, accAddr:", accAddr)
 
 	res, err := supervisorNode.Request(ctx, &protoplugin.AccountRequest{Address: accAddr})
 	if err != nil {
 		return nil, fmt.Errorf(fmt.Sprintf("Failed to find block due to: %v", err))
 	}
 
-	fmt.Println("now here")
+	fmt.Println("cant make it here")
 	switch msg := res.(type) {
 	case *protobuf.AccountResponse:
 		acc := &Account{}
