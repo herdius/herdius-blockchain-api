@@ -24,28 +24,32 @@ type Account struct {
 
 // GetAccountByAddress broadcasts a request to the supervisor to retrieve
 // Account details for a given account address
-func (s *service) ReceiveRequest(r *http.Request, reqChan chan string) error {
+func (s *service) ReceiveRequest(r *http.Request, reqChan chan string, errChan chan error) {
 	params := mux.Vars(r)
 	if len(params["address"]) == 0 {
-		return errors.New("Request invalid, 'address' param missing\n")
+		errChan <- errors.New("Request invalid, 'address' param missing\n")
+		return
 	}
 	reqChan <- params["address"]
 }
 
-func (s *service) ProcessRequest(reqChan chan string, resChan chan interface{}) error {
+func (s *service) ProcessRequest(reqChan chan string, resChan chan interface{}, errChan chan error) {
 	select {
 	case req := <-reqChan:
 		res, err := supervisorNode.Request(ctx, &protoplugin.AccountRequest{Address: accAddr})
 		if err != nil {
-			return nil, fmt.Errorf("error with request to Supervisor: %v", err)
+			errChan <- fmt.Errorf("error with request to Supervisor: %v", err)
+			return
 		}
 		resChan <- res
+		return
 	default:
-		return fmt.Errorf("no request received for Supervisor")
+		errChan <- fmt.Errorf("no request received for Supervisor")
+		return
 	}
 }
 
-func (s *service) ProcessResponse(resChan chan interface{}) (*Account, error) {
+func (s *service) ProcessResponse(resChan chan interface{}, errChan chan error) *Account {
 	select {
 	case res := <-resChan:
 		switch msg := res.(type) {
@@ -59,27 +63,41 @@ func (s *service) ProcessResponse(resChan chan interface{}) (*Account, error) {
 			acc.Balances = msg.Balances
 			return acc, nil
 		default:
-			return fmt.Errorf("response from Supervisor was not of AccountResponseType. Instead: %T", msg)
+			errChan <- fmt.Errorf("response from Supervisor was not of AccountResponseType. Instead: %T", msg)
+			return
 		}
 	default:
-		return fmt.Errorf("no response received from Supervisor")
+		errChan <- fmt.Errorf("no response received from Supervisor")
+		return
 	}
 }
 
 // GetAccount handler called by http.HandleFunc
 func GetAccount(w http.ResponseWriter, r *http.Request, reqChan chan string, resChan chan interface{}) {
-	go ReceiveRequest()
-	go ProcessRequest()
-	go ProcessResponse()
-	if err != nil {
-		json.NewEncoder(w).Encode("Failed to retrieve acount detail due to: " + err)
+	errChan := make(chan error, 0)
+	s := service{}
+
+	go func() {
+		s.ReceiveRequest(r, reqChan, errChan)
+	}()
+	go func() {
+		s.ProcessRequest(reqChan, resChan, errChan)
+	}()
+	go func() {
+		account := s.ProcessResponse(resChan, errChan)
+		if len(account.Address) <= 0 {
+			json.NewEncoder(w).Encode("Accound details not found for address: " + address)
+			return
+		}
+		log.Info().Msgf("Received Account detail for address: %s", account.Address)
+		json.NewEncoder(w).Encode(account)
+		return
+	}()
+
+	select {
+	case err := <-errors:
+		json.NewEncoder(w).Encode("Failed to retrieve account details: " + err)
 		return
 	}
-	if len(account.Address) <= 0 {
-		json.NewEncoder(w).Encode("Accound details not found for address: " + address)
-		return
-	}
-	log.Info().Msgf("Received Account detail for address: %s", account.Address)
-	json.NewEncoder(w).Encode(account)
 	return
 }
