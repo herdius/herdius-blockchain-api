@@ -24,7 +24,11 @@ func main() {
 func LaunchServer() {
 	var wait time.Duration
 	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
+	envFlag := flag.String("env", "dev", "environment to build network and run process for")
 	flag.Parse()
+
+	env := *envFlag
+	confg := config.GetConfiguration(env)
 
 	router := mux.NewRouter()
 
@@ -37,8 +41,6 @@ func LaunchServer() {
 		Handler:      router,
 	}
 
-	env := os.Getenv("ENV")
-	configuration := config.GetConfiguration(env)
 	builder := network.GetNetworkBuilder(env)
 	net, err := builder.Build()
 	if err != nil {
@@ -47,11 +49,11 @@ func LaunchServer() {
 	go net.Listen()
 	defer net.Close()
 	supervisorAdds := make([]string, 1)
-	supervisorAdds = append(supervisorAdds, configuration.GetSupervisorAddress())
+	supervisorAdds = append(supervisorAdds, confg.GetSupervisorAddress())
 	handler.BootStrap(net, supervisorAdds)
 
-	log.Println("supervsioraddress:", configuration.GetSupervisorAddress())
-	if !net.ConnectionStateExists(configuration.GetSupervisorAddress()) {
+	log.Println("supervsioraddress:", confg.GetSupervisorAddress())
+	if !net.ConnectionStateExists(confg.GetSupervisorAddress()) {
 		log.Println("No peers discovered in network")
 	}
 

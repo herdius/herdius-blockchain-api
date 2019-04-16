@@ -25,6 +25,7 @@ func GetConfiguration(env string) *detail {
 	if env != "staging" {
 		env = "dev"
 	}
+	log.Println("environment sourced from config:", env)
 	once.Do(func() {
 		viper.SetConfigName("config")   // Config file name without extension
 		viper.AddConfigPath("./config") // Path to config file
