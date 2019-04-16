@@ -1,16 +1,12 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/herdius/herdius-blockchain-api/config"
-	apiNet "github.com/herdius/herdius-blockchain-api/network"
 	"github.com/herdius/herdius-blockchain-api/protobuf"
 	protoplugin "github.com/herdius/herdius-blockchain-api/protobuf"
 	"github.com/herdius/herdius-core/p2p/log"
@@ -39,25 +35,6 @@ var (
 )
 
 func (s *service) GetBlockByHeight(height uint64) (*protobuf.BlockResponse, error) {
-	env := os.Getenv("ENV")
-	if env == "" {
-		env = "dev"
-	}
-	net, err := apiNet.GetNetworkBuilder(env).Build()
-	if err != nil {
-		return nil, fmt.Errorf(fmt.Sprintf("Failed to build network:%v", err))
-	}
-
-	go net.Listen()
-	defer net.Close()
-
-	configuration := config.GetConfiguration(env)
-
-	supervisorAddress := configuration.GetSupervisorAddress()
-
-	ctx := network.WithSignMessage(context.Background(), true)
-
-	supervisorNode, _ := net.Client(supervisorAddress)
 	res, err := supervisorNode.Request(ctx, &protoplugin.BlockHeightRequest{BlockHeight: height})
 
 	if err != nil {

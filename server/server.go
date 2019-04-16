@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -29,12 +30,27 @@ func LaunchServer() {
 	env := *envFlag
 	confg := config.GetConfiguration(env)
 	supervisorAddr := confg.GetSupervisorAddress()
+	net, err := apiNet.GetNetworkBuilder(env).Build()
+	if err != nil {
+		return nil, fmt.Errorf(fmt.Sprintf("Failed to build network:%v", err))
+	}
+
+	go net.Listen()
+	defer net.Close()
+	supervisorAdds := make([]string, 1)
+	supervisorAdds = append(supervisorAdds, supervisorAddr)
+	handler.BootStrap(net, supervisorAdds)
+
+	supervisorNode, _ := net.Client(supervisorAddr)
 
 	reqChan := make(chan interface{})
-	reqChan := make(chan interface{})
+	resChan := make(chan interface{})
 
 	router := mux.NewRouter()
-	router.HandleFunc("/account/{address}", handler.GetAccount).Methods("GET")
+	router.HandleFunc("/account/{address}",
+		func(w http.ResponseWriter, r *http.Request) {
+			handler.GetAccount(w, r, reqChan, resChan)
+		}).Methods("GET")
 	router.HandleFunc("/block/{height}", handler.GetBlockByHeight).Methods("GET")
 	router.HandleFunc("/tx", handler.SendTx).Methods("POST")
 	router.HandleFunc("/tx/{id}", handler.GetTx).Methods("GET")

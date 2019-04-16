@@ -73,6 +73,7 @@ func (s *service) ProcessResponse(resChan chan interface{}, errChan chan error) 
 }
 
 // GetAccount handler called by http.HandleFunc
+// TODO make these all pointers
 func GetAccount(w http.ResponseWriter, r *http.Request, reqChan chan string, resChan chan interface{}) {
 	errChan := make(chan error, 0)
 	s := service{}
