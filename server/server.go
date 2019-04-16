@@ -28,46 +28,43 @@ func LaunchServer() {
 	flag.Parse()
 
 	env := *envFlag
+	builder := network.GetNetworkBuilder(env)
+	net, err := builder.Build()
+	if err != nil {
+		log.Fatalf("Failed to build network:%v", err)
+	}
+
 	confg := config.GetConfiguration(env)
 	supervisorAddr := confg.GetSupervisorAddress()
 
+	reqChan := make(chan interface{})
+
+	go net.Listen()
+	defer net.Close()
+	supervisorAdds := make([]string, 1)
+	supervisorAdds = append(supervisorAdds, supervisorAddr)
+	handler.BootStrap(net, supervisorAdds)
+	if !net.ConnectionStateExists(supervisorAddr) {
+		log.Println("No peers discovered in network")
+	}
+
 	router := mux.NewRouter()
+	router.HandleFunc("/account/{address}",
+		func(w http.ResponseWriter, r *http.Request) {
+			handler.GetAccount(w, r, net, env, reqChan)
+		}).Methods("GET")
+	router.HandleFunc("/block/{height}", handler.GetBlockByHeight).Methods("GET")
+	router.HandleFunc("/tx", handler.SendTx).Methods("POST")
+	router.HandleFunc("/tx/{id}", handler.GetTx).Methods("GET")
 
 	srv := &http.Server{
-		Addr: "0.0.0.0:80",
-		// Timeouts to avoid Slowloris attacks.
+		Addr:         "0.0.0.0:80",
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,
 		Handler:      router,
 	}
 
-	builder := network.GetNetworkBuilder(env)
-	net, err := builder.Build()
-	if err != nil {
-		log.Fatalf("Failed to build network:%v", err)
-	}
-	go net.Listen()
-	defer net.Close()
-	supervisorAdds := make([]string, 1)
-	supervisorAdds = append(supervisorAdds, supervisorAddr)
-	handler.BootStrap(net, supervisorAdds)
-
-	log.Println("supervsioraddress:", supervisorAddr)
-	if !net.ConnectionStateExists(supervisorAddr) {
-		log.Println("No peers discovered in network")
-	}
-
-	router.HandleFunc("/account/{address}",
-		func(w http.ResponseWriter, r *http.Request) {
-			handler.GetAccount(w, r, net, env)
-		}).Methods("GET")
-
-	router.HandleFunc("/block/{height}", handler.GetBlockByHeight).Methods("GET")
-	router.HandleFunc("/tx", handler.SendTx).Methods("POST")
-	router.HandleFunc("/tx/{id}", handler.GetTx).Methods("GET")
-
-	// Run our server in a goroutine so that it doesn't block.
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
 			log.Println(err)
