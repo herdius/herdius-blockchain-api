@@ -11,6 +11,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/herdius/herdius-blockchain-api/handler"
+	"github.com/herdius/herdius-core/config"
 )
 
 func main() {
@@ -21,10 +22,22 @@ func main() {
 // LaunchServer ...
 func LaunchServer() {
 	var wait time.Duration
-	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
+	flag.DurationVar(&wait, "graceful-timeout", time.Second*2, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
+	envFlag := flag.String("env", "dev", "environment to build network and run process for")
 	flag.Parse()
 
+	env := *envFlag
+	confg := config.GetConfiguration(env)
+	supervisorAddr := confg.GetSupervisorAddress()
+
+	reqChan := make(chan interface{})
+	reqChan := make(chan interface{})
+
 	router := mux.NewRouter()
+	router.HandleFunc("/account/{address}", handler.GetAccount).Methods("GET")
+	router.HandleFunc("/block/{height}", handler.GetBlockByHeight).Methods("GET")
+	router.HandleFunc("/tx", handler.SendTx).Methods("POST")
+	router.HandleFunc("/tx/{id}", handler.GetTx).Methods("GET")
 
 	srv := &http.Server{
 		Addr: "0.0.0.0:80",
@@ -34,11 +47,6 @@ func LaunchServer() {
 		IdleTimeout:  time.Second * 60,
 		Handler:      router,
 	}
-
-	router.HandleFunc("/account/{address}", handler.GetAccount).Methods("GET")
-	router.HandleFunc("/block/{height}", handler.GetBlockByHeight).Methods("GET")
-	router.HandleFunc("/tx", handler.SendTx).Methods("POST")
-	router.HandleFunc("/tx/{id}", handler.GetTx).Methods("GET")
 
 	// Run our server in a goroutine so that it doesn't block.
 	go func() {
