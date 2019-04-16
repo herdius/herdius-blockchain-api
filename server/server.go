@@ -49,7 +49,7 @@ func LaunchServer() {
 	router := mux.NewRouter()
 	router.HandleFunc("/account/{address}",
 		func(w http.ResponseWriter, r *http.Request) {
-			handler.GetAccount(w, r, reqChan, resChan)
+			handler.GetAccount(w, r, supervisorNode, reqChan, resChan)
 		}).Methods("GET")
 	router.HandleFunc("/block/{height}", handler.GetBlockByHeight).Methods("GET")
 	router.HandleFunc("/tx", handler.SendTx).Methods("POST")
