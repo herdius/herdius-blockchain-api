@@ -58,8 +58,7 @@ func LaunchServer() {
 	router.HandleFunc("/tx/{id}", handler.GetTx).Methods("GET")
 
 	srv := &http.Server{
-		Addr: "0.0.0.0:80",
-		// Timeouts to avoid Slowloris attacks.
+		Addr:         "0.0.0.0:80",
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,

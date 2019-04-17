@@ -28,7 +28,7 @@ message BlockResponse{
 }
 
 message AccountRequest {
-  string address = 1;
+  string Address = 1;
 }
 
 message AccountResponse {

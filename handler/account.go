@@ -36,17 +36,19 @@ func (s *service) ReceiveRequest(r *http.Request, reqChan chan string, errChan c
 }
 
 func (s *service) ProcessRequest(ctx context.Context, reqChan chan string, supervisorNode *network.PeerClient, resChan chan interface{}, errChan chan error) {
+	i := 0
 	select {
 	case req := <-reqChan:
+		fmt.Println("i:", i)
+		fmt.Println("req:", req)
 		res, err := supervisorNode.Request(ctx, &protoplugin.AccountRequest{Address: req})
 		if err != nil {
+			fmt.Println("req error:", err)
 			errChan <- fmt.Errorf("error with request to Supervisor: %v", err)
 			return
 		}
+		fmt.Println("res:", res)
 		resChan <- res
-		return
-	default:
-		errChan <- fmt.Errorf("no request received for Supervisor")
 		return
 	}
 }
