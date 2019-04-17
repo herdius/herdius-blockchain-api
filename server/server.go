@@ -53,7 +53,7 @@ func LaunchServer() {
 		}).Methods("GET")
 	router.HandleFunc("/block/{height}",
 		func(w http.ResponseWriter, r *http.Request) {
-			handler.GetBlockByHeight(w, r)
+			handler.GetBlockByHeight(w, r, net, env)
 		}).Methods("GET")
 	router.HandleFunc("/tx",
 		func(w http.ResponseWriter, r *http.Request) {

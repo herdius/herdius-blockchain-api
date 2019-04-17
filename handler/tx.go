@@ -2,18 +2,14 @@ package handler
 
 import (
 	"context"
-	"fmt"
-	"strings"
-
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/herdius/herdius-blockchain-api/config"
 	"github.com/herdius/herdius-blockchain-api/protobuf"
-
-	"log"
-
 	"github.com/herdius/herdius-core/p2p/network"
 )
 
@@ -44,8 +40,8 @@ func (s *service) PostTx(txReq protobuf.TxRequest, net *network.Network, env str
 
 	switch msg := res.(type) {
 	case *protobuf.TxResponse:
-		log.Printf("Tx ID: %v", msg.TxId)
-		log.Printf("Tx ID: %v", msg.Status)
+		fmt.Printf("Tx ID: %v", msg.TxId)
+		fmt.Printf("Tx ID: %v", msg.Status)
 		return msg, nil
 	}
 
@@ -89,7 +85,7 @@ func PostTx(w http.ResponseWriter, r *http.Request, net *network.Network, env st
 		txRequest.Tx.Asset.Network == "" ||
 		txRequest.Tx.Asset.Nonce <= 0 ||
 		txRequest.Tx.Asset.Value < 0 {
-		log.Println("POST body did not include all required values")
+		fmt.Println("POST body did not include all required values")
 
 		json.NewEncoder(w).Encode("\nRequest missing data, POST body did not include all required values\n")
 		json.NewEncoder(w).Encode("\ntxreq:\n")
@@ -136,13 +132,13 @@ func (t *TxService) GetTx(id string, net *network.Network, env string) (*protobu
 	}
 	res, err := supervisorNode.Request(ctx, &txDetailReq)
 	if err != nil {
-		log.Println("Failed to get tx detail due to: " + err.Error())
+		fmt.Println("Failed to get tx detail due to: " + err.Error())
 		return nil, fmt.Errorf("Failed to get tx detail due to: %v", err)
 	}
 
 	switch msg := res.(type) {
 	case *protobuf.TxDetailResponse:
-		log.Printf("Tx Detail: %v", msg)
+		fmt.Printf("Tx Detail: %v", msg)
 		return msg, nil
 	}
 	return nil, nil
