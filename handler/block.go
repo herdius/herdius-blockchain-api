@@ -5,12 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/herdius/herdius-blockchain-api/config"
-	apiNet "github.com/herdius/herdius-blockchain-api/network"
 	"github.com/herdius/herdius-blockchain-api/protobuf"
 	protoplugin "github.com/herdius/herdius-blockchain-api/protobuf"
 	"github.com/herdius/herdius-core/p2p/log"
@@ -28,7 +26,7 @@ type Block struct {
 
 // BlockI is an interface to provide block specific services
 type BlockI interface {
-	GetBlockByHeight(height uint64) (*protobuf.BlockResponse, error)
+	GetBlockByHeight(height uint64, net *network.Network, env string) (*protobuf.BlockResponse, error)
 }
 
 // Service ...
@@ -38,28 +36,14 @@ var (
 	_ BlockI = (*service)(nil)
 )
 
-func (s *service) GetBlockByHeight(height uint64) (*protobuf.BlockResponse, error) {
-	env := os.Getenv("ENV")
-	if env == "" {
-		env = "dev"
-	}
-	net, err := apiNet.GetNetworkBuilder(env).Build()
-	if err != nil {
-		return nil, fmt.Errorf(fmt.Sprintf("Failed to build network:%v", err))
-	}
-
-	go net.Listen()
-	defer net.Close()
-
+func (s *service) GetBlockByHeight(height uint64, net *network.Network, env string) (*protobuf.BlockResponse, error) {
 	configuration := config.GetConfiguration(env)
-
 	supervisorAddress := configuration.GetSupervisorAddress()
 
 	ctx := network.WithSignMessage(context.Background(), true)
 
 	supervisorNode, _ := net.Client(supervisorAddress)
 	res, err := supervisorNode.Request(ctx, &protoplugin.BlockHeightRequest{BlockHeight: height})
-
 	if err != nil {
 		return nil, fmt.Errorf(fmt.Sprintf("Failed to find block due to: %v", err))
 	}
@@ -72,14 +56,14 @@ func (s *service) GetBlockByHeight(height uint64) (*protobuf.BlockResponse, erro
 	return nil, nil
 }
 
-func bootStrap(net *network.Network, peers []string) {
+func BootStrap(net *network.Network, peers []string) {
 	if len(peers) > 0 {
 		net.Bootstrap(peers...)
 	}
 }
 
 // GetBlockByHeight handler
-func GetBlockByHeight(w http.ResponseWriter, r *http.Request) {
+func GetBlockByHeight(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
 	params := mux.Vars(r)
 	if len(params["height"]) == 0 {
 		json.NewEncoder(w).Encode("Request invalid, 'height' param missing\n")
@@ -87,15 +71,13 @@ func GetBlockByHeight(w http.ResponseWriter, r *http.Request) {
 	}
 
 	heightJSON := params["height"]
-
 	height, err := strconv.ParseInt(heightJSON, 10, 64)
-
 	if err != nil {
 		log.Error().Msgf("Failed to Parse %v", err)
 	}
 
 	srv := service{}
-	block, err := srv.GetBlockByHeight(uint64(height))
+	block, err := srv.GetBlockByHeight(uint64(height), net, env)
 	if err != nil {
 		fmt.Fprint(w, err)
 	}

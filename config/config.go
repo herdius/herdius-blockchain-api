@@ -25,6 +25,7 @@ func GetConfiguration(env string) *detail {
 	if env != "staging" {
 		env = "dev"
 	}
+	log.Println("environment sourced from config:", env)
 	once.Do(func() {
 		viper.SetConfigName("config")   // Config file name without extension
 		viper.AddConfigPath("./config") // Path to config file
@@ -46,6 +47,5 @@ func GetConfiguration(env string) *detail {
 }
 
 func (d *detail) GetSupervisorAddress() string {
-	supervisorAddress := d.TCP + "://" + d.SupervisorHost + ":" + strconv.Itoa(d.SupervisorPort)
-	return supervisorAddress
+	return d.TCP + "://" + d.SupervisorHost + ":" + strconv.Itoa(d.SupervisorPort)
 }
