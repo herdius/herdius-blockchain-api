@@ -68,9 +68,6 @@ func (s *service) ProcessResponse(resChan chan interface{}, errChan chan error) 
 			errChan <- fmt.Errorf("response from Supervisor was not of AccountResponseType. Instead: %T", msg)
 			return nil
 		}
-	default:
-		errChan <- fmt.Errorf("no response received from Supervisor")
-		return nil
 	}
 }
 
@@ -88,6 +85,7 @@ func GetAccount(w http.ResponseWriter, r *http.Request, ctx context.Context, sup
 	}()
 	go func() {
 		account := s.ProcessResponse(resChan, errChan)
+		fmt.Println("account:", account)
 		if len(account.Address) <= 0 {
 			json.NewEncoder(w).Encode("Accound details not found for address: " + account.Address)
 			return

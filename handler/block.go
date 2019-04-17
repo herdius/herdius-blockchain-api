@@ -8,7 +8,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/herdius/herdius-blockchain-api/protobuf"
-	protoplugin "github.com/herdius/herdius-blockchain-api/protobuf"
 	"github.com/herdius/herdius-core/p2p/log"
 	"github.com/herdius/herdius-core/p2p/network"
 )
@@ -35,21 +34,21 @@ var (
 )
 
 func (s *service) GetBlockByHeight(height uint64) (*protobuf.BlockResponse, error) {
-	res, err := supervisorNode.Request(ctx, &protoplugin.BlockHeightRequest{BlockHeight: height})
+	//res, err := supervisorNode.Request(ctx, &protoplugin.BlockHeightRequest{BlockHeight: height})
 
-	if err != nil {
-		return nil, fmt.Errorf(fmt.Sprintf("Failed to find block due to: %v", err))
-	}
+	//if err != nil {
+	//	return nil, fmt.Errorf(fmt.Sprintf("Failed to find block due to: %v", err))
+	//}
 
-	switch msg := res.(type) {
-	case *protobuf.BlockResponse:
-		return msg, nil
-	}
+	//switch msg := res.(type) {
+	//case *protobuf.BlockResponse:
+	//	return msg, nil
+	//}
 
 	return nil, nil
 }
 
-func bootStrap(net *network.Network, peers []string) {
+func Bootstrap(net *network.Network, peers []string) {
 	if len(peers) > 0 {
 		net.Bootstrap(peers...)
 	}

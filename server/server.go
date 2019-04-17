@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -11,8 +10,10 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/herdius/herdius-blockchain-api/config"
 	"github.com/herdius/herdius-blockchain-api/handler"
-	"github.com/herdius/herdius-core/config"
+	"github.com/herdius/herdius-blockchain-api/network"
+	p2pNet "github.com/herdius/herdius-core/p2p/network"
 )
 
 func main() {
@@ -28,28 +29,29 @@ func LaunchServer() {
 	flag.Parse()
 
 	env := *envFlag
+	ctx := p2pNet.WithSignMessage(context.Background(), true)
 	confg := config.GetConfiguration(env)
 	supervisorAddr := confg.GetSupervisorAddress()
-	net, err := apiNet.GetNetworkBuilder(env).Build()
+	net, err := network.GetNetworkBuilder(env).Build()
 	if err != nil {
-		return nil, fmt.Errorf(fmt.Sprintf("Failed to build network:%v", err))
+		log.Fatalf("Failed to build network: %v", err)
 	}
 
 	go net.Listen()
 	defer net.Close()
 	supervisorAdds := make([]string, 1)
 	supervisorAdds = append(supervisorAdds, supervisorAddr)
-	handler.BootStrap(net, supervisorAdds)
+	handler.Bootstrap(net, supervisorAdds)
 
 	supervisorNode, _ := net.Client(supervisorAddr)
 
-	reqChan := make(chan interface{})
+	reqChan := make(chan string)
 	resChan := make(chan interface{})
 
 	router := mux.NewRouter()
 	router.HandleFunc("/account/{address}",
 		func(w http.ResponseWriter, r *http.Request) {
-			handler.GetAccount(w, r, supervisorNode, reqChan, resChan)
+			handler.GetAccount(w, r, ctx, supervisorNode, reqChan, resChan)
 		}).Methods("GET")
 	router.HandleFunc("/block/{height}", handler.GetBlockByHeight).Methods("GET")
 	router.HandleFunc("/tx", handler.SendTx).Methods("POST")
