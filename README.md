@@ -19,6 +19,14 @@ go run client.go 3.209.249.184
 // Send transaction to host's API node
 go run client.go
 go run client.go localhost // equivalent to ^
+
+Eg.
+go run client.go
+2019/04/17 15:10:41 endpoint: http://localhost:80/tx
+2019/04/17 15:10:41 Sender Address: HDzLGL98C4vKtVWb3qzm92C2LX2V5kNhXR
+2019/04/17 15:10:41 Receiver Address: HPNMnZc9eNA7PzEMRWVqXwzPqieSRLzuyf
+2019/04/17 15:10:42 HTx0a6a87494ab14872ebb5df2e9b0c939f12faef28
+2019/04/17 15:10:42 success
 ```
 
 **Method 2**: Manually `POST` to API node
@@ -39,7 +47,25 @@ curl http://localhost:80/account/HPNMnZc9eNA7PzEMRWVqXwzPqieSRLzuyf
 
 #### `GET` transaction details
 
+Syntax:
+```
+curl http://IP of API node>:<port>/tx/<transaction ID>
+
+Eg.
+curl http://localhost:80/tx/HTx0a6a87494ab14872ebb5df2e9b0c939f12faef28
+{"tx_id":"HTx0a6a87494ab14872ebb5df2e9b0c939f12faef28","tx":{"sender_address":"HDzLGL98C4vKtVWb3qzm92C2LX2V5kNhXR","sender_pubkey":"A72fjBMhMkDgP+DQJOkPEngf76Xar99JqjgzGkEGjBWh","reciever_address":"HPNMnZc9eNA7PzEMRWVqXwzPqieSRLzuyf","asset":{"category":"crypto","symbol":"HER","network":"Herdius","value":100,"nonce":1},"message":"Send Her Token","sign":"E6WnVBzGGzpPqLN68uzHzYzlohiKdqjKky+OWqNmlbNR9nUWDRMH0YwceP7AHXBQY9wFv2r7SrnRrpYV5+ax4Q==","status":"success"},"creationDt":{"seconds":1555506643,"nanos":1555506643271614000},"block_id":1}
+```
+
 #### `GET` block details
+
+Syntax:
+```
+curl http://IP of API node>:<port>/block/<block height number>
+
+Eg.
+curl http://localhost:80/block/1
+{1 1555506643 1 tcp://127.0.0.1:5555 []}%
+```
 
 ## Versions and Testing
 
