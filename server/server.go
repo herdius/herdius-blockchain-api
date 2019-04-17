@@ -37,8 +37,6 @@ func LaunchServer() {
 	confg := config.GetConfiguration(env)
 	supervisorAddr := confg.GetSupervisorAddress()
 
-	reqChan := make(chan interface{})
-
 	go net.Listen()
 	defer net.Close()
 	supervisorAdds := make([]string, 1)
@@ -51,11 +49,20 @@ func LaunchServer() {
 	router := mux.NewRouter()
 	router.HandleFunc("/account/{address}",
 		func(w http.ResponseWriter, r *http.Request) {
-			handler.GetAccount(w, r, net, env, reqChan)
+			handler.GetAccount(w, r, net, env)
 		}).Methods("GET")
-	router.HandleFunc("/block/{height}", handler.GetBlockByHeight).Methods("GET")
-	router.HandleFunc("/tx", handler.SendTx).Methods("POST")
-	router.HandleFunc("/tx/{id}", handler.GetTx).Methods("GET")
+	router.HandleFunc("/block/{height}",
+		func(w http.ResponseWriter, r *http.Request) {
+			handler.GetBlockByHeight(w, r)
+		}).Methods("GET")
+	router.HandleFunc("/tx",
+		func(w http.ResponseWriter, r *http.Request) {
+			handler.PostTx(w, r, net, env)
+		}).Methods("POST")
+	router.HandleFunc("/tx/{id}",
+		func(w http.ResponseWriter, r *http.Request) {
+			handler.GetTx(w, r, net, env)
+		}).Methods("GET")
 
 	srv := &http.Server{
 		Addr:         "0.0.0.0:80",

@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 
 	"encoding/json"
@@ -11,7 +10,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/herdius/herdius-blockchain-api/config"
-	apiNet "github.com/herdius/herdius-blockchain-api/network"
 	"github.com/herdius/herdius-blockchain-api/protobuf"
 
 	"log"
@@ -19,27 +17,21 @@ import (
 	"github.com/herdius/herdius-core/p2p/network"
 )
 
-func (s *service) SendTxToBlockchain(txReq protobuf.TxRequest) (*protobuf.TxResponse, error) {
+// TxServiceI is transaction service interface over blockchain
+type TxServiceI interface {
+	GetTx(id string, net *network.Network, env string) (*protobuf.TxDetailResponse, error)
+}
 
-	env := os.Getenv("ENV")
-	if env == "" {
-		env = "dev"
-	}
-	net, err := apiNet.GetNetworkBuilder(env).Build()
-	if err != nil {
-		log.Print(err)
-	}
+// TxService ...
+type TxService struct{}
 
-	go net.Listen()
-	defer net.Close()
+var (
+	_ TxServiceI = (*TxService)(nil)
+)
 
+func (s *service) PostTx(txReq protobuf.TxRequest, net *network.Network, env string) (*protobuf.TxResponse, error) {
 	configuration := config.GetConfiguration(env)
-
 	supervisorAddress := configuration.GetSupervisorAddress()
-
-	supervisorAdds := make([]string, 1)
-	supervisorAdds = append(supervisorAdds, supervisorAddress)
-	BootStrap(net, supervisorAdds)
 
 	ctx := network.WithSignMessage(context.Background(), true)
 
@@ -61,8 +53,7 @@ func (s *service) SendTxToBlockchain(txReq protobuf.TxRequest) (*protobuf.TxResp
 }
 
 // SendTx ...
-func SendTx(w http.ResponseWriter, r *http.Request) {
-
+func PostTx(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
 	var txRequest protobuf.TxRequest
 	err := json.NewDecoder(r.Body).Decode(&txRequest)
 	if err != nil {
@@ -72,7 +63,6 @@ func SendTx(w http.ResponseWriter, r *http.Request) {
 
 	// Check if tx type is account update
 	if len(txRequest.Tx.Type) > 0 && strings.EqualFold(txRequest.Tx.Type, "update") {
-
 		if len(txRequest.Tx.SenderAddress) == 0 ||
 			len(txRequest.Tx.Sign) == 0 ||
 			len(txRequest.Tx.SenderPubkey) == 0 {
@@ -82,7 +72,12 @@ func SendTx(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		srv := service{}
-		newTxResponse, _ := srv.SendTxToBlockchain(txRequest)
+		newTxResponse, err := srv.PostTx(txRequest, net, env)
+		if err != nil {
+			json.NewEncoder(w).Encode(err.Error())
+		} else {
+			json.NewEncoder(w).Encode(newTxResponse)
+		}
 
 		json.NewEncoder(w).Encode(newTxResponse)
 		return
@@ -103,18 +98,17 @@ func SendTx(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	srv := service{}
-	newTxResponse, err := srv.SendTxToBlockchain(txRequest)
+	newTxResponse, err := srv.PostTx(txRequest, net, env)
 	if err != nil {
 		json.NewEncoder(w).Encode(err.Error())
 	} else {
 		json.NewEncoder(w).Encode(newTxResponse)
 	}
-
 }
 
 // GetTx will retrieve a transaction detail from blockchain
 // for a give tx id
-func GetTx(w http.ResponseWriter, r *http.Request) {
+func GetTx(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
 	params := mux.Vars(r)
 	if len(params["id"]) == 0 {
 		json.NewEncoder(w).Encode("Request invalid, 'id' param missing\n")
@@ -122,60 +116,25 @@ func GetTx(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := params["id"]
-
-	service := TxService{}
-	txDetailRes, err := service.GetTx(id)
+	srv := TxService{}
+	txDetailRes, err := srv.GetTx(id, net, env)
 	if err != nil {
 		json.NewEncoder(w).Encode("Failed to retrieve Tx detail for id: " + id)
 	} else {
 		json.NewEncoder(w).Encode(txDetailRes)
 	}
-
 }
-
-// TxServiceI is transaction service interface over blockchain
-type TxServiceI interface {
-	GetTx(id string) (*protobuf.TxDetailResponse, error)
-}
-
-// TxService ...
-type TxService struct{}
-
-var (
-	_ TxServiceI = (*TxService)(nil)
-)
 
 // GetTx ...
-func (t *TxService) GetTx(id string) (*protobuf.TxDetailResponse, error) {
-	env := os.Getenv("ENV")
-	if env == "" {
-		env = "dev"
-	}
-	net, err := apiNet.GetNetworkBuilder(env).Build()
-	if err != nil {
-		log.Print(err)
-	}
-
-	go net.Listen()
-	defer net.Close()
-
+func (t *TxService) GetTx(id string, net *network.Network, env string) (*protobuf.TxDetailResponse, error) {
 	configuration := config.GetConfiguration(env)
-
 	supervisorAddress := configuration.GetSupervisorAddress()
-
-	supervisorAdds := make([]string, 1)
-	supervisorAdds = append(supervisorAdds, supervisorAddress)
-	BootStrap(net, supervisorAdds)
-
 	ctx := network.WithSignMessage(context.Background(), true)
-
 	supervisorNode, _ := net.Client(supervisorAddress)
-
 	txDetailReq := protobuf.TxDetailRequest{
 		TxId: id,
 	}
 	res, err := supervisorNode.Request(ctx, &txDetailReq)
-
 	if err != nil {
 		log.Println("Failed to get tx detail due to: " + err.Error())
 		return nil, fmt.Errorf("Failed to get tx detail due to: %v", err)
