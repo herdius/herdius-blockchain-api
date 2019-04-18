@@ -46,12 +46,8 @@ func LaunchServer() {
 	BootStrap(net, supervisorAdds)
 
 	connTest := new(handler.Connected)
-	router := mux.NewRouter()
-	router.HandleFunc("/",
-		func(w http.ResponseWriter, r *http.Request) {
-			log.Println("in here")
-			json.NewEncoder(w).Encode("The Herdius network is currently undergoing maintenance and is not operational at the moment")
-		})
+	router := *mux.NewRouter()
+	addRoutes(net, env, &router)
 	router.Use(connTest.IsConnected)
 
 	srv := &http.Server{
@@ -59,7 +55,7 @@ func LaunchServer() {
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,
-		Handler:      router,
+		Handler:      &router,
 	}
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
@@ -104,34 +100,27 @@ func BootStrap(net *coreNet.Network, peers []string) {
 	}
 }
 
-func tempRouter(net *coreNet.Network, env string) *mux.Router {
-	tempRouter := mux.NewRouter()
-	tempRouter.HandleFunc("/",
-		func(w http.ResponseWriter, r *http.Request) {
-			json.NewEncoder(w).Encode("The Herdius network is currently undergoing maintenance and is not operational at the moment")
-		})
-	return tempRouter
-}
-
-func stableRouter(net *coreNet.Network, env string) *mux.Router {
-	stableRouter := mux.NewRouter()
-	stableRouter.HandleFunc("/account/{address}",
+func addRoutes(net *coreNet.Network, env string, router *mux.Router) {
+	router.HandleFunc("/account/{address}",
 		func(w http.ResponseWriter, r *http.Request) {
 			handler.GetAccount(w, r, net, env)
 		}).Methods("GET")
-	stableRouter.HandleFunc("/block/{height}",
+	router.HandleFunc("/block/{height}",
 		func(w http.ResponseWriter, r *http.Request) {
 			handler.GetBlockByHeight(w, r, net, env)
 		}).Methods("GET")
-	stableRouter.HandleFunc("/tx",
+	router.HandleFunc("/tx",
 		func(w http.ResponseWriter, r *http.Request) {
 			handler.PostTx(w, r, net, env)
 		}).Methods("POST")
-	stableRouter.HandleFunc("/tx/{id}",
+	router.HandleFunc("/tx/{id}",
 		func(w http.ResponseWriter, r *http.Request) {
 			handler.GetTx(w, r, net, env)
 		}).Methods("GET")
-	return stableRouter
+	router.HandleFunc("/",
+		func(w http.ResponseWriter, r *http.Request) {
+			json.NewEncoder(w).Encode("That path does not exist")
+		})
 }
 
 func loggingMiddleware(next http.Handler) http.Handler {

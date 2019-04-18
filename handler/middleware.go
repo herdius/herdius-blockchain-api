@@ -1,21 +1,17 @@
 package handler
 
 import (
-	"log"
 	"net/http"
 )
 
 type Connected bool
 
 func (c *Connected) IsConnected(handlr http.Handler) http.Handler {
-	log.Println("in middlware")
-	log.Println("c:", c)
-
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if *c {
 			handlr.ServeHTTP(w, r)
 		} else {
-			http.Error(w, "unable to pass request to Supervisor", http.StatusForbidden)
+			http.Error(w, "Herdius network currently undergoing maintenance; we were unable to pass your request to the blockchain network at this time", http.StatusPreconditionFailed)
 		}
 	})
 }
