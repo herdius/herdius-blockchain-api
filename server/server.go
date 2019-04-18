@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -46,20 +45,29 @@ func LaunchServer() {
 	supervisorAdds = append(supervisorAdds, supervisorAddr)
 	BootStrap(net, supervisorAdds)
 
-	routeTable := handler.RouterSwapper{Root: tempRouter(net, env)}
+	connTest := new(handler.Connected)
+	router := mux.NewRouter()
+	router.HandleFunc("/",
+		func(w http.ResponseWriter, r *http.Request) {
+			log.Println("in here")
+			json.NewEncoder(w).Encode("The Herdius network is currently undergoing maintenance and is not operational at the moment")
+		})
+	router.Use(connTest.IsConnected)
+
 	srv := &http.Server{
 		Addr:         "0.0.0.0:80",
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,
-		Handler:      routeTable,
+		Handler:      router,
 	}
-
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
 			log.Println(err)
 		}
 	}()
+	log.Println("Supervisor discovered at:", supervisorAddr)
+
 	for {
 		if !net.ConnectionStateExists(supervisorAddr) {
 			BootStrap(net, supervisorAdds)
@@ -67,12 +75,9 @@ func LaunchServer() {
 			time.Sleep(time.Second * 3)
 			continue
 		}
-		fmt.Printf("Route table being swapped: %+v\n", routeTable.Root)
-		routeTable.Swap(stableRouter(net, env))
-		fmt.Printf("Route table being swapped: %+v\n", routeTable.Root)
+		*connTest = true
 		break
 	}
-	log.Println("Supervisor discovered at:", supervisorAddr)
 	c := make(chan os.Signal, 1)
 
 	signal.Notify(c, os.Interrupt)
@@ -127,4 +132,13 @@ func stableRouter(net *coreNet.Network, env string) *mux.Router {
 			handler.GetTx(w, r, net, env)
 		}).Methods("GET")
 	return stableRouter
+}
+
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Do stuff here
+		log.Println(r.RequestURI)
+		// Call the next handler, which can be another middleware in the chain, or the final handler.
+		next.ServeHTTP(w, r)
+	})
 }

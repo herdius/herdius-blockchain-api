@@ -1,26 +1,21 @@
 package handler
 
 import (
+	"log"
 	"net/http"
-	"sync"
-
-	"github.com/gorilla/mux"
 )
 
-type RouterSwapper struct {
-	Mu   sync.Mutex
-	Root *mux.Router
-}
+type Connected bool
 
-func (rs *RouterSwapper) Swap(newRouter *mux.Router) {
-	rs.Mu.Lock()
-	rs.Root = newRouter
-	rs.Mu.Unlock()
-}
+func (c *Connected) IsConnected(handlr http.Handler) http.Handler {
+	log.Println("in middlware")
+	log.Println("c:", c)
 
-func (rs RouterSwapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	rs.Mu.Lock()
-	root := rs.Root
-	rs.Mu.Unlock()
-	root.ServeHTTP(w, r)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if *c {
+			handlr.ServeHTTP(w, r)
+		} else {
+			http.Error(w, "unable to pass request to Supervisor", http.StatusForbidden)
+		}
+	})
 }
