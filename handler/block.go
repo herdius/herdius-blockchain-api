@@ -56,12 +56,6 @@ func (s *service) GetBlockByHeight(height uint64, net *network.Network, env stri
 	return nil, nil
 }
 
-func BootStrap(net *network.Network, peers []string) {
-	if len(peers) > 0 {
-		net.Bootstrap(peers...)
-	}
-}
-
 // GetBlockByHeight handler
 func GetBlockByHeight(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
 	params := mux.Vars(r)
