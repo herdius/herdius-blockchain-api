@@ -9,26 +9,27 @@ const atob = require('atob');
 
 
 interface IGenerator {
-  genPrivateKey(): any;
-  genPublicKey(privateKey: any): any;
-  sign(msg: any, privateKey: any): any;
+  getPrivateKey(): Buffer;
+  getPublicKey(privateKey: any): any;
+  sign(msg: Buffer, privateKey: any): any;
   verify(msg: any, signObj: any, pubKey: any): any;
 }
 
 class Secp256k1Generator implements IGenerator {
 
-  private _random: Buffer
+  private _key: string
   private _privKey!: Buffer;
 
-  constructor(random: Buffer) {
-    this._random = random
+  constructor(key: string) {
+    console.log(key)
+    this._key = key
+    let pkBuffer = base64ToArrayBuffer(key);
+    this._privKey = pkBuffer
   }
-  genPrivateKey = (): any => {
-    let privKey
-    privKey = Buffer.from("ecja1TZR8pWr/5OI5j7km4eg+BXh+RB2oN1d4oo6yZE=")
-    let sha = crypto.createHmac('sha256', privKey)
-    secp256k1.privateKeyImport(sha.digest())
-    return privKey
+  getPrivateKey = (): Buffer => {
+    let pkBuffer = base64ToArrayBuffer(this._key);
+    this._privKey = pkBuffer
+    return this._privKey
   }
 
   setPrivKey = (key: string): Buffer => {
@@ -37,11 +38,12 @@ class Secp256k1Generator implements IGenerator {
     return this._privKey
   }
 
-  genPublicKey = (): Buffer => {
+  getPublicKey = (): Buffer => {
     return secp256k1.publicKeyCreate(this._privKey)
   }
 
   getAddress = (): any => {
+    console.log(this._privKey)
     let pubKey = secp256k1.publicKeyCreate(this._privKey)
     let hash = sha3_256(pubKey);
     const hash20 = new Uint8Array(hexToArrayBuffer(hash).slice(12));
@@ -56,8 +58,11 @@ class Secp256k1Generator implements IGenerator {
     return senderaddress
   }
 
-  sign = (msg: any, privKey: any): any => {
-    return secp256k1.sign(msg, privKey)
+  sign = (msg: Buffer): any => {
+    let m = sha256(msg)
+    return secp256k1.sign(Buffer.from(m.slice(0, 32)), this._privKey)
+
+
   }
 
   verify = (msg: any, signObj: any, pubKey: any): any => {
