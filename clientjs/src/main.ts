@@ -1,18 +1,64 @@
 import * as secp from './lib/secp256k1'
 import { randomBytes } from 'crypto'
 import * as fs from 'fs'
-import { protobuf } from './models/proto'
+const sha256 = require('sha256');
+
 
 const util = require('util');
 const fetch = require('node-fetch');
 
+interface ITxRequest {
+    /** TxRequest tx */
+    tx?: (ITx | null);
+}
 
+interface ITx {
 
+    /** Tx senderAddress */
+    sender_address?: (string | null);
 
+    /** Tx senderPubkey */
+    sender_pubkey?: (string | null);
 
+    /** Tx recieverAddress */
+    reciever_address?: (string | null);
 
+    /** Tx asset */
+    asset?: (IAsset | null);
 
-//Generate public Key
+    /** Tx message */
+    message?: (string | null);
+
+    /** Tx sign */
+    sign?: (string | null);
+
+    /** Tx type */
+    type?: (string | null);
+
+    /** Tx status */
+    status?: (string | null);
+}
+
+interface IAsset {
+
+    /** Asset category */
+    category?: (string | null);
+
+    /** Asset symbol */
+    symbol?: (string | null);
+
+    /** Asset network */
+    network?: (string | null);
+
+    /** Asset value */
+    value?: (number | null);
+
+    /** Asset fee */
+    fee?: (number | null);
+
+    /** Asset nonce */
+    nonce?: (number | null);
+}
 
 let dataPath = "../testdata/secp205k1Accts/"
 
@@ -33,10 +79,8 @@ let getKeys = (privateKey64: Key) => {
 }
 
 
-
-
-let start = async () => {
-    let endpoint = "http://" + "localhost" + ":80/tx"
+let sendTx = async () => {
+    let endpoint = "http://" + "127.0.0.1" + ":80/tx"
 
     let senderData = await LoakKeys(dataPath + "1_peer_id.json")
 
@@ -51,22 +95,41 @@ let start = async () => {
     let reciever: Key = { type: rec.type, value: rec.value }
     let recieverKey = getKeys(reciever)
 
-    let asset: protobuf.IAsset = { category: "crypto", symbol: "HER", network: "Herdius", value: 100, fee: 0, nonce: 0 }
+    let asset: IAsset = {
+        category: "crypto",
+        symbol: "HER",
+        network: "Herdius",
+        value: 100,
+        fee: 1,
+        nonce: 3
+    }
 
-    let tx: protobuf.ITx = { senderAddress: sendkerKey.getAddress(), recieverAddress: recieverKey.getAddress(), asset: asset, message: "Send Her Token", senderPubkey: sendkerKey.getPublicKey().toString('base64') }
+    let tx = {
+        sender_address: sendkerKey.getAddress(),
+        reciever_address: recieverKey.getAddress(),
+        asset: asset,
+        message: "Send Her Token",
+        sender_pubkey: sendkerKey.getPublicKey().toString('base64')
+    }
+
+    const msg = Buffer.from(sha256(JSON.stringify(tx), { asBytes: true }));
+    const signedTx = sendkerKey.sign(msg);
+
+    console.log(signedTx.signature.toString('base64'))
+
+   // tx.sign = signedTx.signature.toString('base64')
+
  
-    let signedTx = sendkerKey.sign(Buffer.from(JSON.stringify(tx)))
-    tx.sign = signedTx.signature.toString('base64')
+    //    console.log("Verify", sendkerKey.verify(Buffer.from(JSON.stringify("hjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj")).slice(0,32),signedTx))
 
-    let req: protobuf.ITxRequest = { tx: tx }
+    let req: ITxRequest = { tx: tx }
 
- 
     let request = await fetch(endpoint, {
         method: "POST",
         body: JSON.stringify(req),
         headers: {
             "Content-Type": "application/json"
-        },
+        }
     })
 
     let d = await request.json()
@@ -75,5 +138,5 @@ let start = async () => {
 }
 
 
-start();
+sendTx();
 

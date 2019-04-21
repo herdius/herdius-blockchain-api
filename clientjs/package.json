@@ -5,8 +5,8 @@
   "license": "MIT",
   "scripts": {
     "start": "ts-node -r tsconfig-paths/register  src/main.ts",
-    "proto": "pbjs -t  static-module  -w commonjs -o  src/models/proto.js ../protobuf/message.proto ",
-    "protots": "pbts -o src/types/proto.d.ts src/models/proto.js",
+    "proto": "pbjs -t   static-module  --keep-case -w commonjs -o  src/models/proto.js ../protobuf/message.proto ",
+    "protots": "pbts --keep-case -o src/types/proto.d.ts src/models/proto.js",
     "lint:fix": "tslint -c tslint.json --project . --fix"
   },
   "devDependencies": {
@@ -19,6 +19,7 @@
     "atob": "^2.1.2",
     "bs58": "^4.0.1",
     "crypto": "^1.0.1",
+    "ethereumjs-util": "^6.1.0",
     "js-sha3": "^0.8.0",
     "node-fetch": "^2.3.0",
     "protobufjs": "^6.8.8",

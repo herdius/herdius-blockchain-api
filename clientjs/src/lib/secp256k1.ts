@@ -6,6 +6,9 @@ const sha256 = require('sha256');
 const toBuffer = require('typedarray-to-buffer');
 const atob = require('atob');
 
+import * as ethUtils from 'ethereumjs-util';
+
+
 
 
 interface IGenerator {
@@ -58,17 +61,32 @@ class Secp256k1Generator implements IGenerator {
     return senderaddress
   }
 
-  sign = (msg: Buffer): any => {
-    let m = sha256(msg)
-    return secp256k1.sign(Buffer.from(m.slice(0, 32)), this._privKey)
+  sign = (msg: any): any => {
+    // let mm = crypto.createHash("sha256").update(msg).digest();
+    // console.log("-------hash-------",mm)
 
+    return secp256k1.sign(msg, this.getPrivateKey())
+    // let gsigned = secp256k1.signatureNormalize(signed.signature);
 
+    // Convert to DER
+    // return secp256k1.signatureExport(gsigned);
+    //  const mm = ethUtils.hashPersonalMessage(ethUtils.toBuffer(msg));
+    //     const signed = ethUtils.ecsign(
+    //       Buffer.from(mm),
+    //       this._privKey
+    //     );
+    //     const combined = Buffer.concat([
+    //       Buffer.from([signed.v]),
+    //       Buffer.from(signed.r),
+    //       Buffer.from(signed.s)
+    //     ]);
+    //     const combinedHex = combined.toString('base64');
+    //     return combinedHex
   }
 
-  verify = (msg: any, signObj: any, pubKey: any): any => {
-    return secp256k1.verify(msg, signObj.signature, pubKey)
+  verify = (msg: Buffer, signObj: any): any => {
+    return secp256k1.verify(msg, signObj, this.getPublicKey())
   }
-
 }
 
 function hexToArrayBuffer(hex: any) {
@@ -77,7 +95,6 @@ function hexToArrayBuffer(hex: any) {
   }));
   return typedArray.buffer;
 }
-
 
 function concatTypedArrays(a: any, b: any) {
   let c = new (a.constructor)(a.length + b.length);
