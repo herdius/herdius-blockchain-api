@@ -13,9 +13,9 @@ import * as ethUtils from 'ethereumjs-util';
 
 interface IGenerator {
   getPrivateKey(): Buffer;
-  getPublicKey(privateKey: any): any;
-  sign(msg: Buffer, privateKey: any): any;
-  verify(msg: any, signObj: any, pubKey: any): any;
+  getPublicKey(): any;
+  sign(msg: Buffer): any;
+  verify(msg: any, signObj: any): any;
 }
 
 class Secp256k1Generator implements IGenerator {
