@@ -46,7 +46,6 @@ class Secp256k1Generator implements IGenerator {
   }
 
   getAddress = (): any => {
-    console.log(this._privKey)
     let pubKey = secp256k1.publicKeyCreate(this._privKey)
     let hash = sha3_256(pubKey);
     const hash20 = new Uint8Array(hexToArrayBuffer(hash).slice(12));
@@ -62,26 +61,7 @@ class Secp256k1Generator implements IGenerator {
   }
 
   sign = (msg: any): any => {
-    // let mm = crypto.createHash("sha256").update(msg).digest();
-    // console.log("-------hash-------",mm)
-
     return secp256k1.sign(msg, this.getPrivateKey())
-    // let gsigned = secp256k1.signatureNormalize(signed.signature);
-
-    // Convert to DER
-    // return secp256k1.signatureExport(gsigned);
-    //  const mm = ethUtils.hashPersonalMessage(ethUtils.toBuffer(msg));
-    //     const signed = ethUtils.ecsign(
-    //       Buffer.from(mm),
-    //       this._privKey
-    //     );
-    //     const combined = Buffer.concat([
-    //       Buffer.from([signed.v]),
-    //       Buffer.from(signed.r),
-    //       Buffer.from(signed.s)
-    //     ]);
-    //     const combinedHex = combined.toString('base64');
-    //     return combinedHex
   }
 
   verify = (msg: Buffer, signObj: any): any => {

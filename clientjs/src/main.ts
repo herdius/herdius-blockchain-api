@@ -1,5 +1,4 @@
 import * as secp from './lib/secp256k1'
-import { randomBytes } from 'crypto'
 import * as fs from 'fs'
 const sha256 = require('sha256');
 
@@ -81,7 +80,6 @@ let getKeys = (privateKey64: Key) => {
 
 let sendTx = async () => {
     let endpoint = "http://" + "127.0.0.1" + ":80/tx"
-
     let senderData = await LoakKeys(dataPath + "1_peer_id.json")
 
     let privD = JSON.parse(senderData.toString()).priv_key
@@ -101,26 +99,22 @@ let sendTx = async () => {
         network: "Herdius",
         value: 100,
         fee: 1,
-        nonce: 3
-    }
+        nonce:10
+        }
 
-    let tx = {
+    let tx:any = {
         sender_address: sendkerKey.getAddress(),
+        sender_pubkey: sendkerKey.getPublicKey().toString('base64'),
         reciever_address: recieverKey.getAddress(),
         asset: asset,
         message: "Send Her Token",
-        sender_pubkey: sendkerKey.getPublicKey().toString('base64')
     }
 
     const msg = Buffer.from(sha256(JSON.stringify(tx), { asBytes: true }));
+
     const signedTx = sendkerKey.sign(msg);
+    tx.sign = signedTx.signature.toString('base64')
 
-    console.log(signedTx.signature.toString('base64'))
-
-   // tx.sign = signedTx.signature.toString('base64')
-
- 
-    //    console.log("Verify", sendkerKey.verify(Buffer.from(JSON.stringify("hjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj")).slice(0,32),signedTx))
 
     let req: ITxRequest = { tx: tx }
 
@@ -132,8 +126,8 @@ let sendTx = async () => {
         }
     })
 
-    let d = await request.json()
-    console.log(d)
+    let result = await request.json()
+    console.log(result)
 
 }
 
