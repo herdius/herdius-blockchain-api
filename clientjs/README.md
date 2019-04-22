@@ -34,6 +34,14 @@ let publicKey = secp256.getPublicKey()
 4) Sign Message
 
 ```
+let messageObj = {
+    ....
+}
+
+Sign needs sha256 message 
+
+const msg = Buffer.from(sha256(JSON.stringify(messageStruct), { asBytes: true }));
+
 let signed = secp256.sign(msg)
 
 ```
