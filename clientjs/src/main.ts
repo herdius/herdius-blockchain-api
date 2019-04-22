@@ -60,6 +60,8 @@ interface IAsset {
 }
 
 let dataPath = "../testdata/secp205k1Accts/"
+let endpoint = "http://" + "127.0.0.1" + ":80/tx"
+
 
 interface Key {
     type: string
@@ -79,9 +81,7 @@ let getKeys = (privateKey64: Key) => {
 
 
 let sendTx = async () => {
-    let endpoint = "http://" + "127.0.0.1" + ":80/tx"
     let senderData = await LoakKeys(dataPath + "1_peer_id.json")
-
     let privD = JSON.parse(senderData.toString()).priv_key
     let sender: Key = { type: privD.type, value: privD.value }
     let sendkerKey = getKeys(sender)
@@ -99,10 +99,10 @@ let sendTx = async () => {
         network: "Herdius",
         value: 100,
         fee: 1,
-        nonce:10
-        }
+        nonce: 10
+    }
 
-    let tx:any = {
+    let tx: any = {
         sender_address: sendkerKey.getAddress(),
         sender_pubkey: sendkerKey.getPublicKey().toString('base64'),
         reciever_address: recieverKey.getAddress(),
@@ -130,7 +130,61 @@ let sendTx = async () => {
     console.log(result)
 
 }
+let update = async () => {
+    let senderData = await LoakKeys(dataPath + "1_peer_id.json")
+
+    let privD = JSON.parse(senderData.toString()).priv_key
+    let sender: Key = { type: privD.type, value: privD.value }
+    let sendkerKey = getKeys(sender)
+
+    let asset: IAsset = {
+        category: "crypto",
+        symbol: "HER",
+        network: "Herdius",
+        value: 0,
+        fee: 0,
+        nonce: 1
+    }
+
+    let tx: any = {
+        sender_address: sendkerKey.getAddress(),
+        sender_pubkey: sendkerKey.getPublicKey().toString('base64'),
+        asset: asset,
+        type: "update",
+        message: "Update my account"
+    }
+
+    
+
+    const msg = Buffer.from(sha256(JSON.stringify(tx), { asBytes: true }));
+
+    const signedTx = sendkerKey.sign(msg);
+    tx.sign = signedTx.signature.toString('base64')
+ 
+
+    let req: ITxRequest = { tx: tx }
+
+    let request = await fetch(endpoint, {
+        method: "POST",
+        body: JSON.stringify(req),
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+
+    let result = await request.json()
+    console.log(result)
+
+}
 
 
-sendTx();
 
+
+var args = process.argv.slice(2);
+console.log(args)
+
+if (args[0] === "update") {
+    update();
+} else {
+    sendTx();
+}
