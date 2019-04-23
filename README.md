@@ -14,11 +14,11 @@ Example:
 
 ```
 // Send transaction to primary Herdius test chain (with API node IP address at `3.209.249.184`)
-go run client.go 3.209.249.184
+go run client.go -host=3.209.249.184
 
 // Send transaction to host's API node
 go run client.go
-go run client.go localhost // equivalent to ^
+go run client.go -host=localhost // equivalent to ^
 
 Eg.
 go run client.go
