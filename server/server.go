@@ -87,17 +87,11 @@ func LaunchServer() {
 	os.Exit(0)
 }
 
-func BootStrap(net *coreNet.Network, peers []string) {
-	if len(peers) > 0 {
-		net.Bootstrap(peers...)
-	}
-}
-
 func connPinging(net *coreNet.Network, supervisorAdds []string, connTest *middleware.Connected) {
 	for {
 		for _, supervisorAddr := range supervisorAdds {
 			if !net.ConnectionStateExists(supervisorAddr) {
-				BootStrap(net, supervisorAdds)
+				net.Bootstrap(supervisorAdds...)
 				log.Println("No peers discovered in network, retrying")
 				*connTest = false
 				continue
