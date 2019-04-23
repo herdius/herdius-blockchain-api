@@ -13,6 +13,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/herdius/herdius-blockchain-api/config"
 	"github.com/herdius/herdius-blockchain-api/handler"
+	"github.com/herdius/herdius-blockchain-api/middleware"
 	"github.com/herdius/herdius-blockchain-api/network"
 	coreNet "github.com/herdius/herdius-core/p2p/network"
 )
@@ -41,11 +42,10 @@ func LaunchServer() {
 
 	go net.Listen()
 	defer net.Close()
-	supervisorAdds := make([]string, 1)
+	supervisorAdds := make([]string, 0)
 	supervisorAdds = append(supervisorAdds, supervisorAddr)
-	BootStrap(net, supervisorAdds)
 
-	connTest := new(handler.Connected)
+	connTest := new(middleware.Connected)
 	router := *mux.NewRouter()
 	addRoutes(net, env, &router)
 	router.Use(connTest.IsConnected)
@@ -58,22 +58,15 @@ func LaunchServer() {
 		Handler:      &router,
 	}
 	go func() {
+		connPinging(net, supervisorAdds, connTest)
+	}()
+	go func() {
 		if err := srv.ListenAndServe(); err != nil {
 			log.Println(err)
 		}
 	}()
 	log.Println("Supervisor discovered at:", supervisorAddr)
 
-	for {
-		if !net.ConnectionStateExists(supervisorAddr) {
-			BootStrap(net, supervisorAdds)
-			log.Println("No peers discovered in network, retrying")
-			time.Sleep(time.Second * 3)
-			continue
-		}
-		*connTest = true
-		break
-	}
 	c := make(chan os.Signal, 1)
 
 	signal.Notify(c, os.Interrupt)
@@ -100,6 +93,22 @@ func BootStrap(net *coreNet.Network, peers []string) {
 	}
 }
 
+func connPinging(net *coreNet.Network, supervisorAdds []string, connTest *middleware.Connected) {
+	for {
+		for _, supervisorAddr := range supervisorAdds {
+			if !net.ConnectionStateExists(supervisorAddr) {
+				BootStrap(net, supervisorAdds)
+				log.Println("No peers discovered in network, retrying")
+				*connTest = false
+				continue
+			}
+			*connTest = true
+			break
+		}
+		time.Sleep(time.Second * 3)
+	}
+}
+
 func addRoutes(net *coreNet.Network, env string, router *mux.Router) {
 	router.HandleFunc("/account/{address}",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -121,13 +130,4 @@ func addRoutes(net *coreNet.Network, env string, router *mux.Router) {
 		func(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode("That path does not exist")
 		})
-}
-
-func loggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Do stuff here
-		log.Println(r.RequestURI)
-		// Call the next handler, which can be another middleware in the chain, or the final handler.
-		next.ServeHTTP(w, r)
-	})
 }
