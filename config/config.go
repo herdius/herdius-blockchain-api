@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"sync"
 
@@ -27,8 +28,9 @@ func GetConfiguration(env string) *detail {
 	}
 	log.Println("environment sourced from config:", env)
 	once.Do(func() {
-		viper.SetConfigName("config")    // Config file name without extension
-		viper.AddConfigPath("../config") // Path to config file
+		dirname := os.Getenv("GOPATH")
+		viper.SetConfigName("config")                                                          // Config file name without extension
+		viper.AddConfigPath(dirname + "/src/github.com/herdius/herdius-blockchain-api/config") // Path to config file
 		err := viper.ReadInConfig()
 		if err != nil {
 			log.Printf("Config file not found: %v", err)
