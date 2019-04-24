@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
@@ -40,8 +41,8 @@ func (s *service) PostTx(txReq protobuf.TxRequest, net *network.Network, env str
 
 	switch msg := res.(type) {
 	case *protobuf.TxResponse:
-		fmt.Printf("Tx ID: %v", msg.TxId)
-		fmt.Printf("Tx ID: %v", msg.Status)
+		log.Printf("Tx ID: %v", msg.TxId)
+		log.Printf("Tx status: %v", msg.Status)
 		return msg, nil
 	}
 
@@ -68,13 +69,13 @@ func PostTx(w http.ResponseWriter, r *http.Request, net *network.Network, env st
 			return
 		}
 		srv := service{}
+
 		newTxResponse, err := srv.PostTx(txRequest, net, env)
+
 		if err != nil {
 			json.NewEncoder(w).Encode(err.Error())
-		} else {
-			json.NewEncoder(w).Encode(newTxResponse)
+			return
 		}
-
 		json.NewEncoder(w).Encode(newTxResponse)
 		return
 	}
@@ -85,7 +86,7 @@ func PostTx(w http.ResponseWriter, r *http.Request, net *network.Network, env st
 		txRequest.Tx.Asset.Network == "" ||
 		txRequest.Tx.Asset.Nonce <= 0 ||
 		txRequest.Tx.Asset.Value < 0 {
-		fmt.Println("POST body did not include all required values")
+		log.Println("POST body did not include all required values")
 
 		json.NewEncoder(w).Encode("\nRequest missing data, POST body did not include all required values\n")
 		json.NewEncoder(w).Encode("\ntxreq:\n")
@@ -95,6 +96,7 @@ func PostTx(w http.ResponseWriter, r *http.Request, net *network.Network, env st
 	}
 	srv := service{}
 	newTxResponse, err := srv.PostTx(txRequest, net, env)
+
 	if err != nil {
 		json.NewEncoder(w).Encode(err.Error())
 	} else {
@@ -132,13 +134,13 @@ func (t *TxService) GetTx(id string, net *network.Network, env string) (*protobu
 	}
 	res, err := supervisorNode.Request(ctx, &txDetailReq)
 	if err != nil {
-		fmt.Println("Failed to get tx detail due to: " + err.Error())
+		log.Println("Failed to get tx detail due to: " + err.Error())
 		return nil, fmt.Errorf("Failed to get tx detail due to: %v", err)
 	}
 
 	switch msg := res.(type) {
 	case *protobuf.TxDetailResponse:
-		fmt.Printf("Tx Detail: %v", msg)
+		log.Printf("Tx Detail: %v", msg)
 		return msg, nil
 	}
 	return nil, nil

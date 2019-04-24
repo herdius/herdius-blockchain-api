@@ -69,6 +69,7 @@ message TxResponse {
     int64 pending           = 2;
     int64 queued            = 3;
     string status           = 4;
+    string message          = 5;
 }
 
 message AccountRegisterRequest{
