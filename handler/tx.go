@@ -145,3 +145,6 @@ func (t *TxService) GetTx(id string, net *network.Network, env string) (*protobu
 	}
 	return nil, nil
 }
+
+//GetTxsByAddress
+func GetTxsByAddress(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {}

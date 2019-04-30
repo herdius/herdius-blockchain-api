@@ -5,6 +5,7 @@ import (
 	b64 "encoding/base64"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -59,7 +60,7 @@ func sendAccountRegisterTx(endpoint string) {
 		Network:  "Herdius",
 		Value:    0,
 		Fee:      0,
-		Nonce:    1,
+		Nonce:    13,
 	}
 	tx := protobuf.Tx{
 		SenderAddress: senderAddress,
@@ -142,10 +143,11 @@ func postTx(endpoint string) {
 		Network: "Herdius",
 		Value:   100,
 		Fee:     0,
-		Nonce:   1,
+		Nonce:   234,
 	}
 
 	//sig = b64.StdEncoding.EncodeToString(sig)
+	recAddress = "HRmscZdqJ9xWrb9Sa1c8hZJJURKD54zEmo"
 	tx := protobuf.Tx{
 		SenderAddress:   senderAddress,
 		SenderPubkey:    senderB64,
@@ -156,7 +158,7 @@ func postTx(endpoint string) {
 
 	// Sign the transaction detail
 	txbBeforeSign, _ := json.Marshal(tx)
-
+	fmt.Println(string(txbBeforeSign))
 	sig, err := senderPrivKey.PrivKey.Sign(txbBeforeSign)
 
 	tx.Sign = b64.StdEncoding.EncodeToString(sig)
