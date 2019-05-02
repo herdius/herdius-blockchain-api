@@ -49,7 +49,7 @@ func (s *service) PostTx(txReq protobuf.TxRequest, net *network.Network, env str
 	return nil, nil
 }
 
-// SendTx ...
+// PostTx ...
 func PostTx(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
 	var txRequest protobuf.TxRequest
 	err := json.NewDecoder(r.Body).Decode(&txRequest)
@@ -140,6 +140,111 @@ func (t *TxService) GetTx(id string, net *network.Network, env string) (*protobu
 
 	switch msg := res.(type) {
 	case *protobuf.TxDetailResponse:
+		log.Printf("Tx Detail: %v", msg)
+		return msg, nil
+	}
+	return nil, nil
+}
+
+// GetTxsByAddress ...
+func GetTxsByAddress(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
+	params := mux.Vars(r)
+	if len(params["address"]) == 0 {
+		json.NewEncoder(w).Encode("Request invalid, 'address' param missing\n")
+		return
+	}
+
+	address := params["address"]
+	srv := TxService{}
+	txs, err := srv.GetTxsByAddress(address, net, env)
+
+	if err != nil {
+		log.Println(err.Error())
+		json.NewEncoder(w).Encode(err.Error())
+	} else {
+		if len(txs.Txs) == 0 {
+			json.NewEncoder(w).Encode("No transactions found")
+		} else {
+			json.NewEncoder(w).Encode(txs.Txs)
+		}
+	}
+}
+
+// GetTxsByAddress ...
+func (t *TxService) GetTxsByAddress(address string, net *network.Network, env string) (*protobuf.TxsResponse, error) {
+	configuration := config.GetConfiguration(env)
+	supervisorAddress := configuration.GetSupervisorAddress()
+	ctx := network.WithSignMessage(context.Background(), true)
+	supervisorNode, err := net.Client(supervisorAddress)
+
+	req := &protobuf.TxsByAddressRequest{
+		Address: address,
+	}
+
+	res, err := supervisorNode.Request(ctx, req)
+	if err != nil {
+		log.Println("Failed to get all txs detail due to: " + err.Error())
+		return nil, fmt.Errorf("Failed to get all txs detail due to: %v", err)
+	}
+
+	switch msg := res.(type) {
+	case *protobuf.TxsResponse:
+		log.Printf("Tx Detail: %v", msg)
+		return msg, nil
+	}
+	return nil, nil
+}
+
+// GetTxsByAssetAndAddress ...
+func GetTxsByAssetAndAddress(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
+	params := mux.Vars(r)
+	if len(params["asset"]) == 0 {
+		json.NewEncoder(w).Encode("Request invalid, 'asset' param missing\n")
+		return
+	}
+	if len(params["address"]) == 0 {
+		json.NewEncoder(w).Encode("Request invalid, 'address' param missing\n")
+		return
+	}
+
+	address := params["address"]
+	asset := params["asset"]
+	srv := TxService{}
+	txs, err := srv.GetTxsByAssetAndAddress(asset, address, net, env)
+
+	if err != nil {
+		log.Println(err.Error())
+		json.NewEncoder(w).Encode(err.Error())
+	} else {
+		if len(txs.Txs) == 0 {
+			json.NewEncoder(w).Encode("No transactions found")
+		} else {
+			json.NewEncoder(w).Encode(txs.Txs)
+		}
+
+	}
+}
+
+// GetTxsByAssetAndAddress ...
+func (t *TxService) GetTxsByAssetAndAddress(asset, address string, net *network.Network, env string) (*protobuf.TxsResponse, error) {
+	configuration := config.GetConfiguration(env)
+	supervisorAddress := configuration.GetSupervisorAddress()
+	ctx := network.WithSignMessage(context.Background(), true)
+	supervisorNode, err := net.Client(supervisorAddress)
+
+	req := &protobuf.TxsByAssetAndAddressRequest{
+		Address: address,
+		Asset:   asset,
+	}
+
+	res, err := supervisorNode.Request(ctx, req)
+	if err != nil {
+		log.Println("Failed to get all txs detail due to: " + err.Error())
+		return nil, fmt.Errorf("Failed to get all txs detail due to: %v", err)
+	}
+
+	switch msg := res.(type) {
+	case *protobuf.TxsResponse:
 		log.Printf("Tx Detail: %v", msg)
 		return msg, nil
 	}
