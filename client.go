@@ -59,7 +59,7 @@ func sendAccountRegisterTx(endpoint string) {
 		Network:  "Herdius",
 		Value:    0,
 		Fee:      0,
-		Nonce:    1,
+		Nonce:    2,
 	}
 	tx := protobuf.Tx{
 		SenderAddress: senderAddress,
@@ -134,58 +134,60 @@ func postTx(endpoint string) {
 	if err != nil {
 		panic(err)
 	}
+	for i := 1; i <= 30; i++ {
 
-	asset := &protobuf.Asset{
-		Category: "crypto",
-		Symbol:   "HER",
+		asset := &protobuf.Asset{
+			Category: "crypto",
+			Symbol:   "HER",
 
-		Network: "Herdius",
-		Value:   100,
-		Fee:     0,
-		Nonce:   1,
+			Network: "Herdius",
+			Value:   100,
+			Fee:     1,
+			Nonce:   uint64(i),
+		}
+
+		//sig = b64.StdEncoding.EncodeToString(sig)
+		tx := protobuf.Tx{
+			SenderAddress:   senderAddress,
+			SenderPubkey:    senderB64,
+			RecieverAddress: recAddress,
+			Asset:           asset,
+			Message:         msg,
+		}
+
+		// Sign the transaction detail
+		txbBeforeSign, _ := json.Marshal(tx)
+
+		sig, err := senderPrivKey.PrivKey.Sign(txbBeforeSign)
+
+		tx.Sign = b64.StdEncoding.EncodeToString(sig)
+
+		// Post tx to blockchain.
+		txReq := protobuf.TxRequest{
+			Tx: &tx,
+		}
+		txJSON, err := json.Marshal(txReq)
+		if err != nil {
+			log.Fatalf("Failed to Marshal %v", err)
+		}
+
+		response, err := http.Post(endpoint, "application/json", bytes.NewBuffer(txJSON))
+		if err != nil {
+			log.Fatalf("Failed to Marshal %v", err)
+		}
+
+		defer response.Body.Close()
+		body, readErr := ioutil.ReadAll(response.Body)
+		if readErr != nil {
+			log.Fatalf("Failed to read http response %s.", readErr)
+		}
+		var txResponse protobuf.TxResponse
+		jsonErr := json.Unmarshal(body, &txResponse)
+		if jsonErr != nil {
+			log.Fatalf("Failed to Unmarshal %s.", jsonErr)
+		}
+
+		log.Println(txResponse.TxId)
+		log.Println(txResponse.Status)
 	}
-
-	//sig = b64.StdEncoding.EncodeToString(sig)
-	tx := protobuf.Tx{
-		SenderAddress:   senderAddress,
-		SenderPubkey:    senderB64,
-		RecieverAddress: recAddress,
-		Asset:           asset,
-		Message:         msg,
-	}
-
-	// Sign the transaction detail
-	txbBeforeSign, _ := json.Marshal(tx)
-
-	sig, err := senderPrivKey.PrivKey.Sign(txbBeforeSign)
-
-	tx.Sign = b64.StdEncoding.EncodeToString(sig)
-
-	// Post tx to blockchain.
-	txReq := protobuf.TxRequest{
-		Tx: &tx,
-	}
-	txJSON, err := json.Marshal(txReq)
-	if err != nil {
-		log.Fatalf("Failed to Marshal %v", err)
-	}
-
-	response, err := http.Post(endpoint, "application/json", bytes.NewBuffer(txJSON))
-	if err != nil {
-		log.Fatalf("Failed to Marshal %v", err)
-	}
-
-	defer response.Body.Close()
-	body, readErr := ioutil.ReadAll(response.Body)
-	if readErr != nil {
-		log.Fatalf("Failed to read http response %s.", readErr)
-	}
-	var txResponse protobuf.TxResponse
-	jsonErr := json.Unmarshal(body, &txResponse)
-	if jsonErr != nil {
-		log.Fatalf("Failed to Unmarshal %s.", jsonErr)
-	}
-
-	log.Println(txResponse.TxId)
-	log.Println(txResponse.Status)
 }
