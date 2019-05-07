@@ -250,3 +250,46 @@ func (t *TxService) GetTxsByAssetAndAddress(asset, address string, net *network.
 	}
 	return nil, nil
 }
+
+// PutCancelTxByTxID forwards a request to cancel a TX that is currently queued in the Supervisor memory pool
+func PutCancelTxByTxID(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
+	var xReq protobuf.TxCancelRequest
+	err := json.NewDecoder(r.Body).Decode(&xReq)
+
+	log.Println("txid for cancelling:", xReq.TxId)
+	srv := TxService{}
+	res, err := srv.PutCancelTxByTxID(&xReq, net, env)
+
+	if err != nil {
+		log.Println(err.Error())
+		json.NewEncoder(w).Encode(err)
+	} else {
+		if res.Error != "" {
+			json.NewEncoder(w).Encode(res.Error)
+		} else {
+			json.NewEncoder(w).Encode(fmt.Sprintf("Cancellation request status: %v", res.Status))
+		}
+
+	}
+}
+
+// PutCancelTxByTxID forwards a request to cancel a TX that is currently queued in the Supervisor memory pool
+func (t *TxService) PutCancelTxByTxID(req *protobuf.TxCancelRequest, net *network.Network, env string) (*protobuf.TxCancelResponse, error) {
+	configuration := config.GetConfiguration(env)
+	supervisorAddress := configuration.GetSupervisorAddress()
+	ctx := network.WithSignMessage(context.Background(), true)
+	supervisorNode, err := net.Client(supervisorAddress)
+
+	res, err := supervisorNode.Request(ctx, req)
+	if err != nil {
+		log.Println("Failed to get all txs detail due to: " + err.Error())
+		return nil, fmt.Errorf("Failed to get all txs detail due to: %v", err)
+	}
+
+	switch msg := res.(type) {
+	case *protobuf.TxCancelResponse:
+		log.Printf("Tx Detail: %v", msg)
+		return msg, nil
+	}
+	return nil, nil
+}

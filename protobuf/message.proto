@@ -109,3 +109,13 @@ message TxsByAssetAndAddressRequest {
     string address          = 1;   
     string asset            = 2;
 }
+
+message TxCancelRequest {
+    string tx_id = 1;
+}
+
+// TxCancelResponse details status of cancellation request
+message TxCancelResponse {
+    bool status = 1;
+    string error = 2;
+}
