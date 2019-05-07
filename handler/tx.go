@@ -255,8 +255,12 @@ func (t *TxService) GetTxsByAssetAndAddress(asset, address string, net *network.
 func PutCancelTxByTxID(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
 	var xReq protobuf.TxCancelRequest
 	err := json.NewDecoder(r.Body).Decode(&xReq)
+	if err != nil {
+		json.NewEncoder(w).Encode(fmt.Sprintf("invalid json POSTed for cancellation: %v", err.Error()))
+		return
+	}
 
-	log.Println("txid for cancelling:", xReq.TxId)
+	log.Println("cancellation request received for tx:", xReq.TxId)
 	srv := TxService{}
 	res, err := srv.PutCancelTxByTxID(&xReq, net, env)
 
