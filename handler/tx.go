@@ -259,8 +259,14 @@ func PutUpdateTxByTxID(w http.ResponseWriter, r *http.Request, net *network.Netw
 		return
 	}
 	id := params["id"]
+	var txRequest protobuf.TxUpdateRequest
+	err := json.NewDecoder(r.Body).Decode(&txRequest.Tx)
+	if err != nil {
+		json.NewEncoder(w).Encode("\nRequest invalid, Could not parse PUT json data, invalid format, err:\n" + err.Error())
+		return
+	}
 
-	log.Println("update request received for tx:", id)
+	log.Println("Update request received for tx:", id)
 	srv := TxService{}
 	res, err := srv.PutUpdateTxByTxID(id, net, env)
 

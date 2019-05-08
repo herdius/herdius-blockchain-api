@@ -113,6 +113,7 @@ message TxsByAssetAndAddressRequest {
 // TxUpdateRequest forwards a Tx update request by the client to the Supervisor
 message TxUpdateRequest {
     string tx_id = 1;
+    Tx tx = 2;
 }
 
 // TxUpdateResponse details status of cancellation request
