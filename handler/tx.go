@@ -251,18 +251,18 @@ func (t *TxService) GetTxsByAssetAndAddress(asset, address string, net *network.
 	return nil, nil
 }
 
-// PutCancelTxByTxID forwards a request to cancel a TX that is currently queued in the Supervisor memory pool
-func PutCancelTxByTxID(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
-	var xReq protobuf.TxCancelRequest
-	err := json.NewDecoder(r.Body).Decode(&xReq)
-	if err != nil {
-		json.NewEncoder(w).Encode(fmt.Sprintf("invalid json POSTed for cancellation: %v", err.Error()))
+// PutUpdateTxByTxID forwards a request to cancel a TX that is currently queued in the Supervisor memory pool
+func PutUpdateTxByTxID(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
+	params := mux.Vars(r)
+	if len(params["id"]) == 0 {
+		json.NewEncoder(w).Encode("Request invalid, 'id' param missing\n")
 		return
 	}
+	id := params["id"]
 
-	log.Println("cancellation request received for tx:", xReq.TxId)
+	log.Println("update request received for tx:", id)
 	srv := TxService{}
-	res, err := srv.PutCancelTxByTxID(&xReq, net, env)
+	res, err := srv.PutUpdateTxByTxID(id, net, env)
 
 	if err != nil {
 		log.Println(err.Error())
@@ -277,12 +277,15 @@ func PutCancelTxByTxID(w http.ResponseWriter, r *http.Request, net *network.Netw
 	}
 }
 
-// PutCancelTxByTxID forwards a request to cancel a TX that is currently queued in the Supervisor memory pool
-func (t *TxService) PutCancelTxByTxID(req *protobuf.TxCancelRequest, net *network.Network, env string) (*protobuf.TxCancelResponse, error) {
+// PutUpdateTxByTxID forwards a request to cancel a TX that is currently queued in the Supervisor memory pool
+func (t *TxService) PutUpdateTxByTxID(id string, net *network.Network, env string) (*protobuf.TxUpdateResponse, error) {
 	configuration := config.GetConfiguration(env)
 	supervisorAddress := configuration.GetSupervisorAddress()
 	ctx := network.WithSignMessage(context.Background(), true)
 	supervisorNode, err := net.Client(supervisorAddress)
+	req := &protobuf.TxUpdateRequest{
+		TxId: id,
+	}
 
 	res, err := supervisorNode.Request(ctx, req)
 	if err != nil {
@@ -291,7 +294,7 @@ func (t *TxService) PutCancelTxByTxID(req *protobuf.TxCancelRequest, net *networ
 	}
 
 	switch msg := res.(type) {
-	case *protobuf.TxCancelResponse:
+	case *protobuf.TxUpdateResponse:
 		log.Printf("Tx Detail: %v", msg)
 		return msg, nil
 	}

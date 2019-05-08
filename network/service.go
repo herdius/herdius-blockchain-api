@@ -61,8 +61,8 @@ func networkBuilder(env string) *network.Builder {
 	opcode.RegisterMessageType(opcode.Opcode(1121), &apiProtobuf.TxsByAddressRequest{})
 	opcode.RegisterMessageType(opcode.Opcode(1122), &apiProtobuf.TxsResponse{})
 	opcode.RegisterMessageType(opcode.Opcode(1123), &apiProtobuf.TxsByAssetAndAddressRequest{})
-	opcode.RegisterMessageType(opcode.Opcode(1124), &apiProtobuf.TxCancelRequest{})
-	opcode.RegisterMessageType(opcode.Opcode(1125), &apiProtobuf.TxCancelResponse{})
+	opcode.RegisterMessageType(opcode.Opcode(1124), &apiProtobuf.TxUpdateRequest{})
+	opcode.RegisterMessageType(opcode.Opcode(1125), &apiProtobuf.TxUpdateResponse{})
 
 	builder := network.NewBuilder(env)
 	builder.SetKeys(keys)
