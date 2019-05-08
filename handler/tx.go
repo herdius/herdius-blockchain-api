@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/gorilla/mux"
 	"github.com/herdius/herdius-blockchain-api/config"
 	"github.com/herdius/herdius-blockchain-api/protobuf"
@@ -265,35 +266,28 @@ func PutUpdateTxByTxID(w http.ResponseWriter, r *http.Request, net *network.Netw
 		json.NewEncoder(w).Encode("\nRequest invalid, Could not parse PUT json data, invalid format, err:\n" + err.Error())
 		return
 	}
-
+	txRequest.TxId = id
 	log.Println("Update request received for tx:", id)
+	spew.Dump(txRequest)
 	srv := TxService{}
-	res, err := srv.PutUpdateTxByTxID(id, net, env)
+	res, err := srv.PutUpdateTxByTxID(&txRequest, net, env)
 
 	if err != nil {
 		log.Println(err.Error())
 		json.NewEncoder(w).Encode(err)
 	} else {
-		if res.Error != "" {
-			json.NewEncoder(w).Encode(res.Error)
-		} else {
-			json.NewEncoder(w).Encode(fmt.Sprintf("Cancellation request status: %v", res.Status))
-		}
-
+		json.NewEncoder(w).Encode(res)
 	}
 }
 
 // PutUpdateTxByTxID forwards a request to cancel a TX that is currently queued in the Supervisor memory pool
-func (t *TxService) PutUpdateTxByTxID(id string, net *network.Network, env string) (*protobuf.TxUpdateResponse, error) {
+func (t *TxService) PutUpdateTxByTxID(txRequest *protobuf.TxUpdateRequest, net *network.Network, env string) (*protobuf.TxUpdateResponse, error) {
 	configuration := config.GetConfiguration(env)
 	supervisorAddress := configuration.GetSupervisorAddress()
 	ctx := network.WithSignMessage(context.Background(), true)
 	supervisorNode, err := net.Client(supervisorAddress)
-	req := &protobuf.TxUpdateRequest{
-		TxId: id,
-	}
 
-	res, err := supervisorNode.Request(ctx, req)
+	res, err := supervisorNode.Request(ctx, txRequest)
 	if err != nil {
 		log.Println("Failed to get all txs detail due to: " + err.Error())
 		return nil, fmt.Errorf("Failed to get all txs detail due to: %v", err)
