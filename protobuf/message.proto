@@ -119,6 +119,7 @@ message TxUpdateRequest {
 // TxUpdateResponse details status of cancellation request
 message TxUpdateResponse {
     bool status = 1;
-    Tx tx = 2;
-    string error = 3;
+    string tx_id = 2;
+    Tx tx = 3;
+    string error = 4;
 }
