@@ -139,11 +139,10 @@ func postTx(endpoint string) {
 		asset := &protobuf.Asset{
 			Category: "crypto",
 			Symbol:   "HER",
-
-			Network: "Herdius",
-			Value:   100,
-			Fee:     1,
-			Nonce:   uint64(i),
+			Network:  "Herdius",
+			Value:    100,
+			Fee:      1,
+			Nonce:    uint64(i),
 		}
 
 		//sig = b64.StdEncoding.EncodeToString(sig)
