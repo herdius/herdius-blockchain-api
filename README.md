@@ -33,6 +33,18 @@ go run client.go
 
 TODO
 
+#### `PUT` transaction updates
+
+While a transaction is in the Supervisor's memory pool, certain fields of the transaction can continue to be updated. This allows users to make modifications to a transaction for a short period after `POST`ing the transaction to the API.
+
+Limitations:
+1. The transaction must still be within the Supervisor's memory pool
+2. The transaction `Nonce` field cannot be modified
+3. The transaction `SenderAddress` cannot be modified
+
+**TODO**
+Syntax:
+
 #### `GET` account details
 
 Syntax:

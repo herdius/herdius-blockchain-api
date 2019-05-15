@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/gorilla/mux"
 	"github.com/herdius/herdius-blockchain-api/config"
 	"github.com/herdius/herdius-blockchain-api/protobuf"
@@ -245,6 +246,55 @@ func (t *TxService) GetTxsByAssetAndAddress(asset, address string, net *network.
 
 	switch msg := res.(type) {
 	case *protobuf.TxsResponse:
+		log.Printf("Tx Detail: %v", msg)
+		return msg, nil
+	}
+	return nil, nil
+}
+
+// PutUpdateTxByTxID forwards a request to cancel a TX that is currently queued in the Supervisor memory pool
+func PutUpdateTxByTxID(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
+	params := mux.Vars(r)
+	if len(params["id"]) == 0 {
+		json.NewEncoder(w).Encode("Request invalid, 'id' param missing\n")
+		return
+	}
+	id := params["id"]
+	var txRequest protobuf.TxUpdateRequest
+	err := json.NewDecoder(r.Body).Decode(&txRequest.Tx)
+	if err != nil {
+		json.NewEncoder(w).Encode("\nRequest invalid, Could not parse PUT json data, invalid format, err:\n" + err.Error())
+		return
+	}
+	txRequest.TxId = id
+	log.Println("Update request received for tx:", id)
+	spew.Dump(txRequest)
+	srv := TxService{}
+	res, err := srv.PutUpdateTxByTxID(&txRequest, net, env)
+
+	if err != nil {
+		log.Println(err.Error())
+		json.NewEncoder(w).Encode(err)
+	} else {
+		json.NewEncoder(w).Encode(res)
+	}
+}
+
+// PutUpdateTxByTxID forwards a request to cancel a TX that is currently queued in the Supervisor memory pool
+func (t *TxService) PutUpdateTxByTxID(txRequest *protobuf.TxUpdateRequest, net *network.Network, env string) (*protobuf.TxUpdateResponse, error) {
+	configuration := config.GetConfiguration(env)
+	supervisorAddress := configuration.GetSupervisorAddress()
+	ctx := network.WithSignMessage(context.Background(), true)
+	supervisorNode, err := net.Client(supervisorAddress)
+
+	res, err := supervisorNode.Request(ctx, txRequest)
+	if err != nil {
+		log.Println("Failed to get all txs detail due to: " + err.Error())
+		return nil, fmt.Errorf("Failed to get all txs detail due to: %v", err)
+	}
+
+	switch msg := res.(type) {
+	case *protobuf.TxUpdateResponse:
 		log.Printf("Tx Detail: %v", msg)
 		return msg, nil
 	}

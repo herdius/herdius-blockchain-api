@@ -134,16 +134,15 @@ func postTx(endpoint string) {
 	if err != nil {
 		panic(err)
 	}
-	for i := 1; i <= 30; i++ {
+	for i := 45; i <= 45; i++ {
 
 		asset := &protobuf.Asset{
 			Category: "crypto",
 			Symbol:   "HER",
-
-			Network: "Herdius",
-			Value:   100,
-			Fee:     1,
-			Nonce:   uint64(i),
+			Network:  "Herdius",
+			Value:    100,
+			Fee:      1,
+			Nonce:    uint64(i),
 		}
 
 		//sig = b64.StdEncoding.EncodeToString(sig)
