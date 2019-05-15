@@ -22,6 +22,15 @@ type Account struct {
 	StorageRoot string            `json:"storageRoot"`
 	PublickKey  string            `json:"publicKey"`
 	Balances    map[string]uint64 // Balances will store balances of assets e.g. [BTC]=10 or [HER]=1000
+	EBalances   map[string]EBalance
+}
+
+// EBalance is external balance model
+type EBalance struct {
+	Address         string
+	Balance         uint64
+	LastBlockHeight uint64
+	Nonce           uint64
 }
 
 // GetAccountByAddress broadcasts a request to the supervisor to retrieve
@@ -52,6 +61,22 @@ func (s *service) GetAccountByAddress(accAddr string, net *network.Network, env 
 		acc.PublickKey = msg.PublicKey
 		acc.StorageRoot = msg.StorageRoot
 		acc.Balances = msg.Balances
+
+		if msg.EBalances != nil && len(msg.EBalances) > 0 {
+			eBalances := make(map[string]EBalance)
+			for key := range msg.EBalances {
+				eBalance := msg.EBalances[key]
+				eBalanceRes := EBalance{
+					Address:         eBalance.Address,
+					Balance:         eBalance.Balance,
+					LastBlockHeight: eBalance.LastBlockHeight,
+					Nonce:           eBalance.Nonce,
+				}
+				eBalances[key] = eBalanceRes
+			}
+			acc.EBalances = eBalances
+		}
+
 		return acc, nil
 	}
 	return nil, nil

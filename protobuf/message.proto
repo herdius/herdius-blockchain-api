@@ -38,6 +38,7 @@ message AccountResponse {
   string public_key   = 4;
   uint64 balance = 5;
   map<string,uint64> balances = 6;
+  map<string,EBalance> eBalances = 7;
 }
 
 message Tx {
@@ -58,6 +59,10 @@ message Asset {
     uint64 value            = 4;
     uint64 fee              = 5;
     uint64 nonce            = 6;
+    string external_sender_address    = 7;
+    string external_reciever_address  = 8;
+    uint64 external_nonce             = 9;
+    uint64 external_block_height      = 10;
 }
 
 message TxRequest {
@@ -123,3 +128,10 @@ message TxUpdateResponse {
     Tx tx = 3;
     string error = 4;
 }
+
+message EBalance{
+    string address = 1;
+    uint64 balance = 2;
+    uint64 last_block_height = 3;
+    uint64 nonce = 4;
+  }
