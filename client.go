@@ -55,12 +55,24 @@ func sendAccountRegisterTx(endpoint string) {
 	msg := "Update my account"
 	asset := &protobuf.Asset{
 		Category: "crypto",
-		Symbol:   "ETH",
+		Symbol:   "HER",
 		Network:  "Herdius",
 		Value:    15,
 		Fee:      0,
-		Nonce:    3,
+		Nonce:    0,
 	}
+
+	// In case ETH or external asset address is required to be registered
+	// use the below Asset Object
+	/* asset = &protobuf.Asset{
+		Category: "crypto",
+		Symbol:   "HER",
+		Network:  "Herdius",
+		Value:    15,
+		Fee:      0,
+		Nonce:    0,
+		ExternalSenderAddress: "0xD8f647855876549d2623f52126CE40D053a2ef6A",
+	} */
 	tx := protobuf.Tx{
 		SenderAddress: senderAddress,
 		SenderPubkey:  senderB64,
@@ -75,7 +87,7 @@ func sendAccountRegisterTx(endpoint string) {
 	sig, err := senderPrivKey.PrivKey.Sign(txbBeforeSign)
 
 	tx.Sign = b64.StdEncoding.EncodeToString(sig)
-	tx.Asset.ExternalSenderAddress = "0xD8f647855876549d2623f52126CE40D053a2ef6A"
+	//tx.Asset.ExternalSenderAddress = "0xD8f647855876549d2623f52126CE40D053a2ef6A"
 	// Post tx to blockchain.
 	txReq := protobuf.TxRequest{
 		Tx: &tx,
