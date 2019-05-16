@@ -236,7 +236,7 @@ func postTx(endpoint string) {
 	if err != nil {
 		panic(err)
 	}
-	for i := 45; i <= 45; i++ {
+	for i := 48; i <= 48; i++ {
 
 		asset := &protobuf.Asset{
 			Category: "crypto",

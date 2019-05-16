@@ -16,12 +16,11 @@ import (
 
 // Account : Account Detail
 type Account struct {
-	Nonce       uint64            `json:"nonce"`
-	Address     string            `json:"address"`
-	Balance     uint64            `json:"balance"`
-	StorageRoot string            `json:"storageRoot"`
-	PublickKey  string            `json:"publicKey"`
-	Balances    map[string]uint64 // Balances will store balances of assets e.g. [BTC]=10 or [HER]=1000
+	Nonce       uint64 `json:"nonce"`
+	Address     string `json:"address"`
+	Balance     uint64 `json:"balance"`
+	StorageRoot string `json:"storageRoot"`
+	PublickKey  string `json:"publicKey"`
 	EBalances   map[string]EBalance
 }
 
@@ -60,7 +59,6 @@ func (s *service) GetAccountByAddress(accAddr string, net *network.Network, env 
 		acc.Nonce = msg.Nonce
 		acc.PublickKey = msg.PublicKey
 		acc.StorageRoot = msg.StorageRoot
-		acc.Balances = msg.Balances
 
 		if msg.EBalances != nil && len(msg.EBalances) > 0 {
 			eBalances := make(map[string]EBalance)
