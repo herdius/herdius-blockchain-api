@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/gorilla/mux"
 	"github.com/herdius/herdius-blockchain-api/config"
 	"github.com/herdius/herdius-blockchain-api/protobuf"
@@ -17,7 +16,10 @@ import (
 
 // TxServiceI is transaction service interface over blockchain
 type TxServiceI interface {
-	GetTx(id string, net *network.Network, env string) (*protobuf.TxDetailResponse, error)
+	GetTx(string, *network.Network, string) (*protobuf.TxDetailResponse, error)
+	GetTxsByAddress(string, *network.Network, string) (*protobuf.TxsResponse, error)
+	GetTxsByAssetAndAddress(string, string, *network.Network, string) (*protobuf.TxsResponse, error)
+	PutUpdateTxByTxID(*protobuf.TxUpdateRequest, *network.Network, string) (*protobuf.TxUpdateResponse, error)
 }
 
 // TxService ...
@@ -252,7 +254,7 @@ func (t *TxService) GetTxsByAssetAndAddress(asset, address string, net *network.
 	return nil, nil
 }
 
-// PutUpdateTxByTxID forwards a request to cancel a TX that is currently queued in the Supervisor memory pool
+// PutUpdateTxByTxID forwards a request to update a TX that is currently queued in the Supervisor memory pool
 func PutUpdateTxByTxID(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
 	params := mux.Vars(r)
 	if len(params["id"]) == 0 {
@@ -268,7 +270,6 @@ func PutUpdateTxByTxID(w http.ResponseWriter, r *http.Request, net *network.Netw
 	}
 	txRequest.TxId = id
 	log.Println("Update request received for tx:", id)
-	spew.Dump(txRequest)
 	srv := TxService{}
 	res, err := srv.PutUpdateTxByTxID(&txRequest, net, env)
 
@@ -280,7 +281,7 @@ func PutUpdateTxByTxID(w http.ResponseWriter, r *http.Request, net *network.Netw
 	}
 }
 
-// PutUpdateTxByTxID forwards a request to cancel a TX that is currently queued in the Supervisor memory pool
+// PutUpdateTxByTxID forwards a request to update a TX that is currently queued in the Supervisor memory pool
 func (t *TxService) PutUpdateTxByTxID(txRequest *protobuf.TxUpdateRequest, net *network.Network, env string) (*protobuf.TxUpdateResponse, error) {
 	configuration := config.GetConfiguration(env)
 	supervisorAddress := configuration.GetSupervisorAddress()
@@ -299,4 +300,37 @@ func (t *TxService) PutUpdateTxByTxID(txRequest *protobuf.TxUpdateRequest, net *
 		return msg, nil
 	}
 	return nil, nil
+}
+
+// CancelRequest forwards a request to cancel a TX that is currently queued in the Supervisor memory pool
+func CancelRequest(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
+	params := mux.Vars(r)
+	if len(params["id"]) == 0 {
+		json.NewEncoder(w).Encode("Request invalid, 'id' param missing\n")
+		return
+	}
+
+	id := params["id"]
+	log.Println("tx id:", id)
+
+	configuration := config.GetConfiguration(env)
+	supervisorAddress := configuration.GetSupervisorAddress()
+	ctx := network.WithSignMessage(context.Background(), true)
+	supervisorNode, err := net.Client(supervisorAddress)
+
+	req := &protobuf.TxCancelRequest{
+		TxId: id,
+	}
+
+	res, err := supervisorNode.Request(ctx, req)
+	if err != nil {
+		log.Println("Failed to cancel tx: " + err.Error())
+		json.NewEncoder(w).Encode(fmt.Sprintf("Failed to cancel tx: %v", err))
+	}
+
+	switch msg := res.(type) {
+	case *protobuf.TxUpdateResponse:
+		log.Printf("Tx Detail: %v", msg)
+		json.NewEncoder(w).Encode(msg)
+	}
 }
