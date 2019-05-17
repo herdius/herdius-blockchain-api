@@ -37,7 +37,7 @@ message AccountResponse {
   string storage_root = 3;
   string public_key   = 4;
   uint64 balance = 5;
-  map<string,EBalance> eBalances = 7;
+  map<string,EBalance> eBalances = 6;
 }
 
 message Tx {
