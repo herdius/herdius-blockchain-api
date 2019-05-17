@@ -303,7 +303,7 @@ func (t *TxService) PutUpdateTxByTxID(txRequest *protobuf.TxUpdateRequest, net *
 }
 
 // CancelRequest forwards a request to cancel a TX that is currently queued in the Supervisor memory pool
-func CancelRequest(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
+func DeleteTx(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
 	params := mux.Vars(r)
 	if len(params["id"]) == 0 {
 		json.NewEncoder(w).Encode("Request invalid, 'id' param missing\n")
@@ -318,7 +318,7 @@ func CancelRequest(w http.ResponseWriter, r *http.Request, net *network.Network,
 	ctx := network.WithSignMessage(context.Background(), true)
 	supervisorNode, err := net.Client(supervisorAddress)
 
-	req := &protobuf.TxCancelRequest{
+	req := &protobuf.TxDeleteRequest{
 		TxId: id,
 	}
 

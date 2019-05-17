@@ -136,6 +136,6 @@ message EBalance {
 }
 
 // TxCancelRequest forwards a Tx cancel request by the client to the Supervisor
-message TxCancelRequest {
+message TxDeleteRequest {
     string tx_id = 1;
 }
