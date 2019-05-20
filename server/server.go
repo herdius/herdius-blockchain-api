@@ -124,6 +124,10 @@ func addRoutes(net *coreNet.Network, env string, router *mux.Router) {
 		func(w http.ResponseWriter, r *http.Request) {
 			handler.PutUpdateTxByTxID(w, r, net, env)
 		}).Methods("PUT")
+	router.HandleFunc("/tx/{id}",
+		func(w http.ResponseWriter, r *http.Request) {
+			handler.DeleteTx(w, r, net, env)
+		}).Methods("DELETE")
 	router.HandleFunc("/txs/{address}",
 		func(w http.ResponseWriter, r *http.Request) {
 			handler.GetTxsByAddress(w, r, net, env)

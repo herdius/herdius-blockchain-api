@@ -128,9 +128,14 @@ message TxUpdateResponse {
     string error = 4;
 }
 
-message EBalance{
+message EBalance {
     string address = 1;
     uint64 balance = 2;
     uint64 last_block_height = 3;
     uint64 nonce = 4;
-  }
+}
+
+// TxCancelRequest forwards a Tx cancel request by the client to the Supervisor
+message TxDeleteRequest {
+    string tx_id = 1;
+}
