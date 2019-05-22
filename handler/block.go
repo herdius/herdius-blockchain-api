@@ -17,11 +17,11 @@ import (
 
 // Block will hold block detail retrieved from blockchain
 type Block struct {
-	BlockHeight       uint64
-	Timestamp         int64 // Timestamp of block intialization
-	Transactions      uint64
-	SupervisorAddress string // Herdius Address of Supervisor node
-	StateRoot         []byte
+	BlockHeight       uint64 `json:"blockHeight"`
+	Timestamp         int64  `json:"timestampSecondInUTC"` // Timestamp of block intialization
+	Transactions      uint64 `json:"noOfTxs"`
+	SupervisorAddress string `json:"supervisorNodeIp"` // Herdius Address of Supervisor node
+	StateRoot         []byte `json:"stateRoot"`
 }
 
 // BlockI is an interface to provide block specific services
@@ -83,8 +83,13 @@ func GetBlockByHeight(w http.ResponseWriter, r *http.Request, net *network.Netwo
 			SupervisorAddress: block.SupervisorAddress,
 			StateRoot:         block.StateRoot,
 		}
-		log.Info().Msgf("Processed for Block Height: %d", block.BlockHeight)
-		fmt.Fprint(w, b)
+		result, err := json.Marshal(b)
+		if err != nil {
+			fmt.Fprintf(w, "Server failed to find block details for block height: %v", block.BlockHeight)
+		} else {
+			log.Info().Msgf("Processed for Block Height: %d", block.BlockHeight)
+			fmt.Fprint(w, string(result))
+		}
 
 	} else {
 		fmt.Fprint(w, "Block not found for block height: "+heightJSON)
