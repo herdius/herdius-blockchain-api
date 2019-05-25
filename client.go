@@ -45,11 +45,11 @@ func sendAccountRegisterTx(endpoint string) {
 	// Create key pairs and store in a local file
 	// User 1
 	// Address: HHy1CuT3UxCGJ3BHydLEvR5ut6HRy2qUvm
-	senderPrivKey, err := key.LoadOrGenNodeKey("./tempKey.json")
+	//senderPrivKey, err := key.LoadOrGenNodeKey("./tempKey.json")
 
 	// User 2
 	// Address: HKTXmdsHyZn1B2ErRKiG4iN34YixCgdQgx
-	//senderPrivKey, err := key.LoadOrGenNodeKey("./tempKeySign.json")
+	senderPrivKey, err := key.LoadOrGenNodeKey("./tempKeySign.json")
 
 	if err != nil {
 		panic(err)
@@ -70,19 +70,20 @@ func sendAccountRegisterTx(endpoint string) {
 		Value:    15,
 		Fee:      0,
 		Nonce:    0,
+		ExternalSenderAddress: "0x44c46Ed496B94fafE8A81b9Ab93B27935fcA1603",
 	}
 
 	// In case ETH or external asset address is required to be registered
 	// use the below Asset Object
-	/* asset = &protobuf.Asset{
+	 asset = &protobuf.Asset{
 		Category:              "crypto",
 		Symbol:                "ETH",
 		Network:               "Herdius",
 		Value:                 15,
 		Fee:                   0,
 		Nonce:                 1,
-		ExternalSenderAddress: "0xD8f647855876549d2623f52126CE40D053a2ef6A",
-	} */
+		ExternalSenderAddress: "0x44c46Ed496B94fafE8A81b9Ab93B27935fcA1603",
+	} 
 	tx := protobuf.Tx{
 		SenderAddress: senderAddress,
 		SenderPubkey:  senderB64,
@@ -130,7 +131,7 @@ func postExternalTx(endpoint string) {
 	// Create key pairs and store in a local file
 	// User 1
 	// Address: HHy1CuT3UxCGJ3BHydLEvR5ut6HRy2qUvm
-	senderPrivKey, err := key.LoadOrGenNodeKey("./tempKey.json")
+	senderPrivKey, err := key.LoadOrGenNodeKey("./tempKeySign.json")
 	if err != nil {
 		panic(err)
 	}
@@ -158,7 +159,7 @@ func postExternalTx(endpoint string) {
 		Network:  "Herdius",
 		Value:    1,
 		Fee:      1,
-		Nonce:    uint64(7),
+		Nonce:    uint64(2),
 	}
 
 	//sig = b64.StdEncoding.EncodeToString(sig)
