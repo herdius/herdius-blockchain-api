@@ -1,9 +1,8 @@
-package main
+package migration
 
 import (
 	"database/sql"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/pressly/goose"
 )
 
@@ -23,7 +22,7 @@ CREATE TABLE "transaction" (
   status varchar(8),
   block_id numeric,
   created_date timestamp
-) INHERITS existing_table_name;
+);
 
 CREATE INDEX idx_sender_address ON transaction(sender_address);
 CREATE INDEX idx_receiver_address ON transaction(receiver_address);
@@ -34,7 +33,7 @@ func init() {
 	goose.AddMigration(Up00001, Down00001)
 }
 
-func Up00001(tx *sqlx.Tx) error {
+func Up00001(tx *sql.Tx) error {
 	if _, err := tx.Exec(createTxTableStatement); err != nil {
 		return err
 	}

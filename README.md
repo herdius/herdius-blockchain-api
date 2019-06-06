@@ -84,3 +84,18 @@ curl http://localhost:80/block/1
 A persistent Herdius test chain lives behind a series of API nodes for which the public can openly test transactions and account interractions. These API nodes are integrated with a CICD pipeline which deploys any new commits to the `master` git branch as they are merged.
 
 The test chain is in a state of transation as we continue to strengthen and reshape the chain structure and logic. However, the API nodes are stable for interraction. Because the chain is in a state of flux, the API nodes may periodically return unexpected results to the calling client.
+
+## Local Development
+
+### Database
+
+#### Run a postgres instance
+```
+docker run --name herdius-api-postgres -e POSTGRES_PASSWORD=postgres -ePOSTGRES_DB=postgres -p5432:5432 -d postgres:9.6.2
+```
+
+#### Migration
+```
+$ cd cmd/migrate
+$ go run main.go up
+```
