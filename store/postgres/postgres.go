@@ -1,6 +1,8 @@
 package postgres
 
 import (
+	"database/sql"
+
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 
@@ -9,36 +11,124 @@ import (
 
 const name = "postgres"
 
-// Storage wraps *sqlx.DB
-type Storage struct {
+const txInsertStmt = `
+INSERT INTO "transaction" (
+	id,
+	sender_address,
+	sender_pubkey,
+	receiver_address,
+	category,
+	symbol,
+	network,
+	value,
+	nonce,
+	message,
+	sign,
+	status,
+	block_id,
+	created_date
+) VALUES (
+	:id,
+	:sender_address,
+	:sender_pubkey,
+	:receiver_address,
+	:category,
+	:symbol,
+	:network,
+	:value,
+	:nonce,
+	:message,
+	:sign,
+	:status,
+	:block_id,
+	:created_date
+)
+`
+
+const txSelectByIDStmt = `
+SELECT
+	id,
+	sender_address,
+	sender_pubkey,
+	receiver_address,
+	category,
+	symbol,
+	network,
+	value,
+	nonce,
+	message,
+	sign,
+	status,
+	block_id,
+	created_date
+FROM "transaction"
+WHERE
+	id = $1
+`
+
+const txSelectBySenderStmt = `
+SELECT
+	id,
+	sender_address,
+	sender_pubkey,
+	receiver_address,
+	category,
+	symbol,
+	network,
+	value,
+	nonce,
+	message,
+	sign,
+	status,
+	block_id,
+	created_date
+FROM "transaction"
+WHERE
+	sender_address = $1
+`
+
+// Store wraps *sqlx.DB
+type Store struct {
 	db *sqlx.DB
 }
 
-// NewStorage returns a new Storage from the provided psql databse string
-func NewStorage(dbstring string) (*Storage, error) {
+// NewStore returns a new Store from the provided databse string,
+// Store implements store.Storer.
+func NewStore(dbstring string) (*Store, error) {
 	db, err := sqlx.Connect(name, dbstring)
 	if err != nil {
 		return nil, err
 	}
-	return &Storage{db: db}, nil
+	return &Store{db: db}, nil
 }
 
 // DB returns the underlying sqlx.DB object
-func (s *Storage) DB() *sqlx.DB {
+func (s *Store) DB() *sql.DB {
 	return s.db.DB
 }
 
 // Save stores store.Tx to database.
-func (s *Storage) Save(*store.Tx) error {
+func (s *Store) Save(tx *store.Tx) error {
+	if _, err := s.db.NamedExec(txInsertStmt, tx); err != nil {
+		return err
+	}
 	return nil
 }
 
 // Get returns transaction by given id.
-func (s *Storage) Get(id string) *store.Tx {
-	return nil
+func (s *Store) Get(id string) (*store.Tx, error) {
+	var tx store.Tx
+	if err := s.db.Get(&tx, txSelectByIDStmt, id); err != nil {
+		return nil, err
+	}
+	return &tx, nil
 }
 
 // GetBySender returns list of transaction filter by given sender address.
-func (s *Storage) GetBySender(address string) []*store.Tx {
-	return nil
+func (s *Store) GetBySender(address string) ([]*store.Tx, error) {
+	var txs []*store.Tx
+	if err := s.db.Select(&txs, txSelectBySenderStmt, address); err != nil {
+		return nil, err
+	}
+	return txs, nil
 }

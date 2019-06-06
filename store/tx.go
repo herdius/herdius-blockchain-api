@@ -11,7 +11,7 @@ type Tx struct {
 	ID              string    `db:"id"`
 	SenderAddress   string    `db:"sender_address"`
 	SenderPubKey    string    `db:"sender_pubkey"`
-	ReceiverAddress string    `db:"reciever_address"`
+	ReceiverAddress string    `db:"receiver_address"`
 	Category        string    `db:"category"`
 	Symbol          string    `db:"symbol"`
 	Network         string    `db:"network"`
