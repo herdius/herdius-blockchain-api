@@ -27,6 +27,7 @@ CREATE TABLE "transaction" (
 
 CREATE INDEX idx_sender_address ON transaction(sender_address);
 CREATE INDEX idx_receiver_address ON transaction(receiver_address);
+CREATE INDEX idx_nonce ON transaction(nonce);
 `
 
 func init() {
