@@ -5,6 +5,6 @@ package store
 // Storer is the interface to manipulate blockchain transaction.
 type Storer interface {
 	Save(*Tx) error
-	Get(id string) *Tx
-	GetBySender(address string) []*Tx
+	Get(id string) (*Tx, error)
+	GetBySender(address string) ([]*Tx, error)
 }
