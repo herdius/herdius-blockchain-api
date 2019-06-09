@@ -130,6 +130,17 @@ func GetTx(w http.ResponseWriter, r *http.Request, net *network.Network, env str
 	}
 
 	id := params["id"]
+	configuration := config.GetConfiguration(env)
+	if s := getStore(configuration.DBConnString()); s != nil {
+		tx, err := s.Get(id)
+		if err != nil {
+			json.NewEncoder(w).Encode(err.Error())
+			return
+		}
+		json.NewEncoder(w).Encode(tx.ToTxDetailResponse())
+		return
+	}
+
 	srv := TxService{}
 	txDetailRes, err := srv.GetTx(id, net, env)
 	if err != nil {
@@ -171,6 +182,21 @@ func GetTxsByAddress(w http.ResponseWriter, r *http.Request, net *network.Networ
 	}
 
 	address := params["address"]
+	configuration := config.GetConfiguration(env)
+	if s := getStore(configuration.DBConnString()); s != nil {
+		txs, err := s.GetBySender(address)
+		if err != nil {
+			json.NewEncoder(w).Encode(err.Error())
+			return
+		}
+		res := &protobuf.TxsResponse{}
+		res.Txs = make([]*protobuf.TxDetailResponse, len(txs))
+		for i, tx := range txs {
+			res.Txs[i] = tx.ToTxDetailResponse()
+		}
+		json.NewEncoder(w).Encode(res)
+		return
+	}
 	srv := TxService{}
 	txs, err := srv.GetTxsByAddress(address, net, env)
 
@@ -225,6 +251,21 @@ func GetTxsByAssetAndAddress(w http.ResponseWriter, r *http.Request, net *networ
 
 	address := params["address"]
 	asset := params["asset"]
+	configuration := config.GetConfiguration(env)
+	if s := getStore(configuration.DBConnString()); s != nil {
+		txs, err := s.GetByAssetAndSender(asset, address)
+		if err != nil {
+			json.NewEncoder(w).Encode(err.Error())
+			return
+		}
+		res := &protobuf.TxsResponse{}
+		res.Txs = make([]*protobuf.TxDetailResponse, len(txs))
+		for i, tx := range txs {
+			res.Txs[i] = tx.ToTxDetailResponse()
+		}
+		json.NewEncoder(w).Encode(res)
+		return
+	}
 	srv := TxService{}
 	txs, err := srv.GetTxsByAssetAndAddress(asset, address, net, env)
 
