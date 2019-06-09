@@ -310,6 +310,18 @@ func (t *TxService) PutUpdateTxByTxID(txRequest *protobuf.TxUpdateRequest, net *
 	switch msg := res.(type) {
 	case *protobuf.TxUpdateResponse:
 		log.Printf("Tx Detail: %v", msg)
+		s := getStore(configuration.DBConnString())
+		if s == nil {
+			log.Printf("Tx will not be updated in database: %v", msg.TxId)
+		}
+		txDetailReq := protobuf.TxDetailRequest{TxId: msg.TxId}
+		res, _ := supervisorNode.Request(ctx, &txDetailReq)
+		if txDetail, ok := res.(*protobuf.TxDetailResponse); ok {
+			if err := s.Save(store.FromTxDetailResponse(txDetail)); err != nil {
+				log.Printf("Failed to update Tx in database: %v", err)
+			}
+			log.Printf("Tx updated in database")
+		}
 		return msg, nil
 	}
 	return nil, nil
