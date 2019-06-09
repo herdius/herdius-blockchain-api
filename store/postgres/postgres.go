@@ -106,6 +106,29 @@ WHERE
 	id = :id
 `
 
+const txSelectByAssetAndSenderStmt = `
+SELECT
+	id,
+	sender_address,
+	sender_pubkey,
+	receiver_address,
+	category,
+	symbol,
+	network,
+	value,
+	nonce,
+	message,
+	sign,
+	status,
+	block_id,
+	created_date
+FROM "transaction"
+WHERE
+	lower(symbol) = lower($1)
+	AND
+	sender_address = $2
+`
+
 // Store wraps *sqlx.DB
 type Store struct {
 	db *sqlx.DB
@@ -155,6 +178,15 @@ func (s *Store) Get(id string) (*store.Tx, error) {
 func (s *Store) GetBySender(address string) ([]*store.Tx, error) {
 	var txs []*store.Tx
 	if err := s.db.Select(&txs, txSelectBySenderStmt, address); err != nil {
+		return nil, err
+	}
+	return txs, nil
+}
+
+// GetByAssetAndSender returns list of transaction filter by given asset and sender address.
+func (s *Store) GetByAssetAndSender(asset, address string) ([]*store.Tx, error) {
+	var txs []*store.Tx
+	if err := s.db.Select(&txs, txSelectByAssetAndSenderStmt, asset, address); err != nil {
 		return nil, err
 	}
 	return txs, nil

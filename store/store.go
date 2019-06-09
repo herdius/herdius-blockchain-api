@@ -8,4 +8,5 @@ type Storer interface {
 	Update(*Tx) error
 	Get(id string) (*Tx, error)
 	GetBySender(address string) ([]*Tx, error)
+	GetByAssetAndSender(asset, address string) ([]*Tx, error)
 }

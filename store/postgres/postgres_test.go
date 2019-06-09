@@ -53,6 +53,7 @@ func TestTx(t *testing.T) {
 	assert.Equal(t, tx, got)
 
 	tx.ID = "id2"
+	tx.Symbol = "BTC"
 	assert.NoError(t, s.Save(tx))
 
 	txs, err := s.GetBySender(tx.SenderAddress)
@@ -64,4 +65,9 @@ func TestTx(t *testing.T) {
 	updated, err := s.Get(tx.ID)
 	assert.NoError(t, err)
 	assert.Equal(t, tx.Status, updated.Status)
+
+	txs, err = s.GetByAssetAndSender("eth", tx.SenderAddress)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(txs))
+	assert.Equal(t, "ETH", txs[0].Symbol)
 }
