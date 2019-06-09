@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/herdius/herdius-blockchain-api/config"
 	"github.com/herdius/herdius-blockchain-api/protobuf"
+	"github.com/herdius/herdius-blockchain-api/store"
 	"github.com/herdius/herdius-core/p2p/network"
 )
 
@@ -46,6 +47,18 @@ func (s *service) PostTx(txReq protobuf.TxRequest, net *network.Network, env str
 	case *protobuf.TxResponse:
 		log.Printf("Tx ID: %v", msg.TxId)
 		log.Printf("Tx status: %v", msg.Status)
+		s := getStore(configuration.DBConnString())
+		if s == nil {
+			log.Printf("Tx will not be saved to database: %v", msg.TxId)
+		}
+		txDetailReq := protobuf.TxDetailRequest{TxId: msg.TxId}
+		res, _ := supervisorNode.Request(ctx, &txDetailReq)
+		if txDetail, ok := res.(*protobuf.TxDetailResponse); ok {
+			if err := s.Save(store.FromTxDetailResponse(txDetail)); err != nil {
+				log.Printf("Failed to save Tx to database: %v", err)
+			}
+			log.Printf("Tx saved to database")
+		}
 		return msg, nil
 	}
 
