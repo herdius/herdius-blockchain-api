@@ -87,6 +87,25 @@ WHERE
 	sender_address = $1
 `
 
+const txUpdateStmt = `
+UPDATE "transaction" SET
+	sender_address = :sender_address,
+	sender_pubkey = :sender_pubkey,
+	receiver_address = :receiver_address,
+	category = :category,
+	symbol = :symbol,
+	network = :network,
+	value = :value,
+	nonce = :nonce,
+	message = :message,
+	sign = :sign,
+	status = :status,
+	block_id = :block_id,
+	created_date = :created_date
+WHERE
+	id = :id
+`
+
 // Store wraps *sqlx.DB
 type Store struct {
 	db *sqlx.DB
@@ -110,6 +129,14 @@ func (s *Store) DB() *sql.DB {
 // Save stores store.Tx to database.
 func (s *Store) Save(tx *store.Tx) error {
 	if _, err := s.db.NamedExec(txInsertStmt, tx); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Update updatess a current store.Tx in database.
+func (s *Store) Update(tx *store.Tx) error {
+	if _, err := s.db.NamedExec(txUpdateStmt, tx); err != nil {
 		return err
 	}
 	return nil

@@ -58,4 +58,10 @@ func TestTx(t *testing.T) {
 	txs, err := s.GetBySender(tx.SenderAddress)
 	assert.NoError(t, err)
 	assert.Len(t, txs, 2)
+
+	tx.Status = "failed"
+	assert.NoError(t, s.Update(tx))
+	updated, err := s.Get(tx.ID)
+	assert.NoError(t, err)
+	assert.Equal(t, tx.Status, updated.Status)
 }
