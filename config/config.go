@@ -48,11 +48,11 @@ func GetConfiguration(env string) *detail {
 				ConnectionPort: viper.GetInt(fmt.Sprint(env, ".connectionport")),
 				SelfIP:         viper.GetString(fmt.Sprint(env, ".selfip")),
 				DBHost:         viper.GetString(fmt.Sprint(env, ".dbhost")),
-				DBPort:         viper.GetString(fmt.Sprint(env, ".dbport")),
+				DBPort:         viper.GetInt(fmt.Sprint(env, ".dbport")),
 				DBName:         viper.GetString(fmt.Sprint(env, ".dbname")),
 				DBUser:         viper.GetString(fmt.Sprint(env, ".dbuser")),
 				DBPass:         viper.GetString(fmt.Sprint(env, ".dbpass")),
-				DBSslMode:      viper.GetString(fmt.Sprint(env, ".dbsslmode")),
+				DBSslMode:      viper.GetBool(fmt.Sprint(env, ".dbsslmode")),
 			}
 		}
 	})
