@@ -15,11 +15,12 @@ var (
 
 func getStore(dsn string) store.Storer {
 	once.Do(func() {
-		var err error
-		db, err = postgres.NewStore(dsn)
+		s, err := postgres.NewStore(dsn)
 		if err != nil {
 			log.Printf("Failed to init store: %v", err)
+			return
 		}
+		db = s
 	})
 	return db
 }
