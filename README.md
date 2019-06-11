@@ -6,6 +6,8 @@ The API node(s) act as a [DMZ](https://searchsecurity.techtarget.com/definition/
 
 ## Setup
 
+#### Postgresql 
+
 You need a running instance of Postgresql. Set theses environment variables (or set them in your config file):
 
  - env_DBHOST
@@ -16,6 +18,12 @@ You need a running instance of Postgresql. Set theses environment variables (or 
  - env-DBSSLMODE
 
 Where env is corresponding to current environment.
+
+#### Supervisor
+
+Dependencies:
+
+* `jq`
 
 ## Usage
 
