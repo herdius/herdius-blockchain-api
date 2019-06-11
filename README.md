@@ -4,6 +4,19 @@ The Herdius Blockchain API provides an API interface in which end users can inte
 
 The API node(s) act as a [DMZ](https://searchsecurity.techtarget.com/definition/DMZ) for the secured Herdius Cluster (consisting of the Supervisor and Validator nodes) which, in the case of deployed test chains, operate in a fully private subnet. Thus, DDoS and similar malicious attacks will disrupt service at the API level, but the chains themselves will still function in a completely undisrupted way.
 
+## Setup
+
+You need a running instance of Postgresql. Set theses environment variables (or set them in your config file):
+
+ - env_DBHOST
+ - env_DBPORT
+ - env_DBNAME
+ - env_DBUSER
+ - env_DBPASS
+ - env-DBSSLMODE
+
+Where env is corresponding to current environment.
+
 ## Usage
 
 #### `POST` new transaction
