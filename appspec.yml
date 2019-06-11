@@ -4,6 +4,10 @@ files:
   - source: /
     destination: /root/go/src/github.com/herdius/herdius-blockchain-api
     overwrite: true
+permissions:
+  - object: /root/go/src/github.com/herdius/herdius-blockchain-api/deployment
+    pattern: "**"
+    mode: 755
 hooks:
   BeforeInstall:
     - location: deployment/kill_old_server.sh

@@ -16,6 +16,12 @@ type detail struct {
 	TCP            string
 	ConnectionPort int
 	SelfIP         string
+	DBHost         string
+	DBPort         int
+	DBName         string
+	DBUser         string
+	DBPass         string
+	DBSslMode      bool
 }
 
 var configuration *detail
@@ -41,6 +47,12 @@ func GetConfiguration(env string) *detail {
 				TCP:            viper.GetString(fmt.Sprint(env, ".tcp")),
 				ConnectionPort: viper.GetInt(fmt.Sprint(env, ".connectionport")),
 				SelfIP:         viper.GetString(fmt.Sprint(env, ".selfip")),
+				DBHost:         viper.GetString(fmt.Sprint(env, ".dbhost")),
+				DBPort:         viper.GetInt(fmt.Sprint(env, ".dbport")),
+				DBName:         viper.GetString(fmt.Sprint(env, ".dbname")),
+				DBUser:         viper.GetString(fmt.Sprint(env, ".dbuser")),
+				DBPass:         viper.GetString(fmt.Sprint(env, ".dbpass")),
+				DBSslMode:      viper.GetBool(fmt.Sprint(env, ".dbsslmode")),
 			}
 		}
 	})
@@ -50,4 +62,13 @@ func GetConfiguration(env string) *detail {
 
 func (d *detail) GetSupervisorAddress() string {
 	return d.TCP + "://" + d.SupervisorHost + ":" + strconv.Itoa(d.SupervisorPort)
+}
+
+func (d *detail) DBConnString() string {
+	mode := "disable"
+	if d.DBSslMode {
+		mode = "enable"
+	}
+	connStrFmt := "user=%s host=%s port=%d dbname=%s dbpassword=%s sslmode=%s"
+	return fmt.Sprintf(connStrFmt, d.DBUser, d.DBHost, d.DBPort, d.DBName, d.DBPass, mode)
 }

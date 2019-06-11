@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/herdius/herdius-blockchain-api/config"
 	"github.com/herdius/herdius-blockchain-api/protobuf"
+	"github.com/herdius/herdius-blockchain-api/store"
 	"github.com/herdius/herdius-core/p2p/network"
 )
 
@@ -46,6 +47,18 @@ func (s *service) PostTx(txReq protobuf.TxRequest, net *network.Network, env str
 	case *protobuf.TxResponse:
 		log.Printf("Tx ID: %v", msg.TxId)
 		log.Printf("Tx status: %v", msg.Status)
+		s := getStore(configuration.DBConnString())
+		if s == nil {
+			log.Printf("Tx will not be saved to database: %v", msg.TxId)
+		}
+		txDetailReq := protobuf.TxDetailRequest{TxId: msg.TxId}
+		res, _ := supervisorNode.Request(ctx, &txDetailReq)
+		if txDetail, ok := res.(*protobuf.TxDetailResponse); ok {
+			if err := s.Save(store.FromTxDetailResponse(txDetail)); err != nil {
+				log.Printf("Failed to save Tx to database: %v", err)
+			}
+			log.Printf("Tx saved to database")
+		}
 		return msg, nil
 	}
 
@@ -117,6 +130,17 @@ func GetTx(w http.ResponseWriter, r *http.Request, net *network.Network, env str
 	}
 
 	id := params["id"]
+	configuration := config.GetConfiguration(env)
+	if s := getStore(configuration.DBConnString()); s != nil {
+		tx, err := s.Get(id)
+		if err != nil {
+			json.NewEncoder(w).Encode(err.Error())
+			return
+		}
+		json.NewEncoder(w).Encode(tx.ToTxDetailResponse())
+		return
+	}
+
 	srv := TxService{}
 	txDetailRes, err := srv.GetTx(id, net, env)
 	if err != nil {
@@ -158,6 +182,21 @@ func GetTxsByAddress(w http.ResponseWriter, r *http.Request, net *network.Networ
 	}
 
 	address := params["address"]
+	configuration := config.GetConfiguration(env)
+	if s := getStore(configuration.DBConnString()); s != nil {
+		txs, err := s.GetBySender(address)
+		if err != nil {
+			json.NewEncoder(w).Encode(err.Error())
+			return
+		}
+		res := &protobuf.TxsResponse{}
+		res.Txs = make([]*protobuf.TxDetailResponse, len(txs))
+		for i, tx := range txs {
+			res.Txs[i] = tx.ToTxDetailResponse()
+		}
+		json.NewEncoder(w).Encode(res)
+		return
+	}
 	srv := TxService{}
 	txs, err := srv.GetTxsByAddress(address, net, env)
 
@@ -212,6 +251,21 @@ func GetTxsByAssetAndAddress(w http.ResponseWriter, r *http.Request, net *networ
 
 	address := params["address"]
 	asset := params["asset"]
+	configuration := config.GetConfiguration(env)
+	if s := getStore(configuration.DBConnString()); s != nil {
+		txs, err := s.GetByAssetAndSender(asset, address)
+		if err != nil {
+			json.NewEncoder(w).Encode(err.Error())
+			return
+		}
+		res := &protobuf.TxsResponse{}
+		res.Txs = make([]*protobuf.TxDetailResponse, len(txs))
+		for i, tx := range txs {
+			res.Txs[i] = tx.ToTxDetailResponse()
+		}
+		json.NewEncoder(w).Encode(res)
+		return
+	}
 	srv := TxService{}
 	txs, err := srv.GetTxsByAssetAndAddress(asset, address, net, env)
 
@@ -297,6 +351,18 @@ func (t *TxService) PutUpdateTxByTxID(txRequest *protobuf.TxUpdateRequest, net *
 	switch msg := res.(type) {
 	case *protobuf.TxUpdateResponse:
 		log.Printf("Tx Detail: %v", msg)
+		s := getStore(configuration.DBConnString())
+		if s == nil {
+			log.Printf("Tx will not be updated in database: %v", msg.TxId)
+		}
+		txDetailReq := protobuf.TxDetailRequest{TxId: msg.TxId}
+		res, _ := supervisorNode.Request(ctx, &txDetailReq)
+		if txDetail, ok := res.(*protobuf.TxDetailResponse); ok {
+			if err := s.Save(store.FromTxDetailResponse(txDetail)); err != nil {
+				log.Printf("Failed to update Tx in database: %v", err)
+			}
+			log.Printf("Tx updated in database")
+		}
 		return msg, nil
 	}
 	return nil, nil
