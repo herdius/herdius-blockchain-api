@@ -237,15 +237,16 @@ func postTx(endpoint string) {
 	if err != nil {
 		panic(err)
 	}
-	for i := 51; i <= 51; i++ {
+	for i := 1; i <= 1; i++ {
 
 		asset := &protobuf.Asset{
 			Category: "crypto",
 			Symbol:   "HER",
 			Network:  "Herdius",
-			Value:    100,
-			Fee:      1,
-			Nonce:    uint64(i),
+			//Value:    100,
+			Value: 0,
+			Fee:   1,
+			Nonce: uint64(i),
 		}
 
 		//sig = b64.StdEncoding.EncodeToString(sig)
@@ -255,6 +256,7 @@ func postTx(endpoint string) {
 			RecieverAddress: recAddress,
 			Asset:           asset,
 			Message:         msg,
+			//Type:            "update",
 		}
 
 		// Sign the transaction detail
