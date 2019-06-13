@@ -5,6 +5,7 @@ import (
 	b64 "encoding/base64"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -45,7 +46,7 @@ func sendAccountRegisterTx(endpoint string) {
 	// Create key pairs and store in a local file
 	// User 1
 	// Address: HHy1CuT3UxCGJ3BHydLEvR5ut6HRy2qUvm
-<<<<<<< HEAD
+
 	// ETH: 0xD8f647855876549d2623f52126CE40D053a2ef6A
 	senderPrivKey, err := key.LoadOrGenNodeKey("./tempKey.json")
 
@@ -53,13 +54,6 @@ func sendAccountRegisterTx(endpoint string) {
 	// Address: HKTXmdsHyZn1B2ErRKiG4iN34YixCgdQgx
 	//Eth Add: 0x9aA7E9819D781eFf5B239b572c4Fe8F964a899c9
 	senderPrivKey, err = key.LoadOrGenNodeKey("./tempKeySign.json")
-=======
-	//senderPrivKey, err := key.LoadOrGenNodeKey("./tempKey.json")
-
-	// User 2
-	// Address: HKTXmdsHyZn1B2ErRKiG4iN34YixCgdQgx
-	senderPrivKey, err := key.LoadOrGenNodeKey("./tempKeySign.json")
->>>>>>> b3e6e9f063300e32eada48e6a1f9e7c51ffcfd69
 
 	if err != nil {
 		panic(err)
@@ -74,35 +68,28 @@ func sendAccountRegisterTx(endpoint string) {
 	log.Println("Account update request : " + senderAddress)
 	msg := "Update my account"
 	asset := &protobuf.Asset{
-		Category: "crypto",
-		Symbol:   "HER",
-		Network:  "Herdius",
-		Value:    15,
-		Fee:      0,
-		Nonce:    0,
+		Category:              "crypto",
+		Symbol:                "HER",
+		Network:               "Herdius",
+		Value:                 15,
+		Fee:                   0,
+		Nonce:                 0,
 		ExternalSenderAddress: "0x44c46Ed496B94fafE8A81b9Ab93B27935fcA1603",
 	}
 
 	// In case ETH or external asset address is required to be registered
 	// use the below Asset Object
-<<<<<<< HEAD
+
 	asset = &protobuf.Asset{
-=======
-	 asset = &protobuf.Asset{
->>>>>>> b3e6e9f063300e32eada48e6a1f9e7c51ffcfd69
 		Category:              "crypto",
 		Symbol:                "ETH",
 		Network:               "Herdius",
 		Value:                 0,
 		Fee:                   0,
 		Nonce:                 1,
-<<<<<<< HEAD
 		ExternalSenderAddress: "0x9aA7E9819D781eFf5B239b572c4Fe8F964a899c9",
 	}
-=======
-		ExternalSenderAddress: "0x44c46Ed496B94fafE8A81b9Ab93B27935fcA1603",
-	} 
->>>>>>> b3e6e9f063300e32eada48e6a1f9e7c51ffcfd69
+
 	tx := protobuf.Tx{
 		SenderAddress: senderAddress,
 		SenderPubkey:  senderB64,
@@ -201,6 +188,7 @@ func postExternalTx(endpoint string) {
 		Tx: &tx,
 	}
 	txJSON, err := json.Marshal(txReq)
+	fmt.Printf("txJSON: %v\n", string(txJSON))
 	if err != nil {
 		log.Fatalf("Failed to Marshal %v", err)
 	}
@@ -251,7 +239,7 @@ func postTx(endpoint string) {
 	log.Println("Receiver Address: " + recAddress)
 
 	msg := "Send Her Token"
-
+	recAddress = "HHzAnaBq3f9rYbSMdun5bKKpYiq1Va6Hnt"
 	if err != nil {
 		panic(err)
 	}
@@ -262,9 +250,9 @@ func postTx(endpoint string) {
 			Symbol:   "HER",
 			Network:  "Herdius",
 			//Value:    100,
-			Value: 0,
+			Value: 500,
 			Fee:   1,
-			Nonce: uint64(i),
+			Nonce: uint64(239),
 		}
 
 		//sig = b64.StdEncoding.EncodeToString(sig)
