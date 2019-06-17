@@ -24,7 +24,7 @@ type Account struct {
 	Erc20Address    string `json:"erc20Address"`
 	ExternalNonce   uint64
 	LastBlockHeight uint64
-	EBalances       map[string]EBalance
+	EBalances       map[string]map[string]EBalance
 }
 
 // EBalance is external balance model
@@ -66,21 +66,20 @@ func (s *service) GetAccountByAddress(accAddr string, net *network.Network, env 
 		acc.ExternalNonce = msg.ExternalNonce
 		acc.LastBlockHeight = msg.LastBlockHeight
 
-		if msg.EBalances != nil && len(msg.EBalances) > 0 {
-			eBalances := make(map[string]EBalance)
-			for key := range msg.EBalances {
-				eBalance := msg.EBalances[key]
-				eBalanceRes := EBalance{
-					Address:         eBalance.Address,
-					Balance:         eBalance.Balance,
-					LastBlockHeight: eBalance.LastBlockHeight,
-					Nonce:           eBalance.Nonce,
+		eBalances := make(map[string]map[string]EBalance)
+		for asset, assetAccount := range msg.EBalances {
+			eBalances[asset] = make(map[string]EBalance)
+			for _, eb := range assetAccount.Asset {
+				eBalance := EBalance{
+					Address:         eb.Address,
+					Balance:         eb.Balance,
+					LastBlockHeight: eb.LastBlockHeight,
+					Nonce:           eb.Nonce,
 				}
-				eBalances[key] = eBalanceRes
+				eBalances[asset][eb.Address] = eBalance
 			}
-			acc.EBalances = eBalances
 		}
-
+		acc.EBalances = eBalances
 		return acc, nil
 	}
 	return nil, nil
