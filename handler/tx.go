@@ -133,14 +133,12 @@ func GetTx(w http.ResponseWriter, r *http.Request, net *network.Network, env str
 
 	id := params["id"]
 	configuration := config.GetConfiguration(env)
-	if s := getStore(configuration.DBConnString()); s != nil {
-		tx, err := s.Get(id)
-		if err != nil {
-			json.NewEncoder(w).Encode(err.Error())
+	s := getStore(configuration.DBConnString())
+	if s != nil {
+		if tx, err := s.Get(id); err == nil {
+			json.NewEncoder(w).Encode(tx.ToTxDetailResponse())
 			return
 		}
-		json.NewEncoder(w).Encode(tx.ToTxDetailResponse())
-		return
 	}
 
 	srv := TxService{}
@@ -185,19 +183,17 @@ func GetTxsByAddress(w http.ResponseWriter, r *http.Request, net *network.Networ
 
 	address := params["address"]
 	configuration := config.GetConfiguration(env)
-	if s := getStore(configuration.DBConnString()); s != nil {
-		txs, err := s.GetBySender(address)
-		if err != nil {
-			json.NewEncoder(w).Encode(err.Error())
+	s := getStore(configuration.DBConnString())
+	if s != nil {
+		if txs, err := s.GetBySender(address); err == nil {
+			res := &protobuf.TxsResponse{}
+			res.Txs = make([]*protobuf.TxDetailResponse, len(txs))
+			for i, tx := range txs {
+				res.Txs[i] = tx.ToTxDetailResponse()
+			}
+			json.NewEncoder(w).Encode(res)
 			return
 		}
-		res := &protobuf.TxsResponse{}
-		res.Txs = make([]*protobuf.TxDetailResponse, len(txs))
-		for i, tx := range txs {
-			res.Txs[i] = tx.ToTxDetailResponse()
-		}
-		json.NewEncoder(w).Encode(res)
-		return
 	}
 	srv := TxService{}
 	txs, err := srv.GetTxsByAddress(address, net, env)
@@ -209,6 +205,11 @@ func GetTxsByAddress(w http.ResponseWriter, r *http.Request, net *network.Networ
 		if len(txs.Txs) == 0 {
 			json.NewEncoder(w).Encode("No transactions found")
 		} else {
+			if s != nil {
+				for _, txDetail := range txs.Txs {
+					s.Save(store.FromTxDetailResponse(txDetail))
+				}
+			}
 			json.NewEncoder(w).Encode(txs.Txs)
 		}
 	}
@@ -254,30 +255,32 @@ func GetTxsByAssetAndAddress(w http.ResponseWriter, r *http.Request, net *networ
 	address := params["address"]
 	asset := params["asset"]
 	configuration := config.GetConfiguration(env)
-	if s := getStore(configuration.DBConnString()); s != nil {
-		txs, err := s.GetByAssetAndSender(asset, address)
-		if err != nil {
-			json.NewEncoder(w).Encode(err.Error())
+	s := getStore(configuration.DBConnString())
+	if s != nil {
+		if txs, err := s.GetByAssetAndSender(asset, address); err == nil {
+			res := &protobuf.TxsResponse{}
+			res.Txs = make([]*protobuf.TxDetailResponse, len(txs))
+			for i, tx := range txs {
+				res.Txs[i] = tx.ToTxDetailResponse()
+			}
+			json.NewEncoder(w).Encode(res)
 			return
 		}
-		res := &protobuf.TxsResponse{}
-		res.Txs = make([]*protobuf.TxDetailResponse, len(txs))
-		for i, tx := range txs {
-			res.Txs[i] = tx.ToTxDetailResponse()
-		}
-		json.NewEncoder(w).Encode(res)
-		return
 	}
 	srv := TxService{}
 	txs, err := srv.GetTxsByAssetAndAddress(asset, address, net, env)
 
 	if err != nil {
-		log.Println(err.Error())
 		json.NewEncoder(w).Encode(err.Error())
 	} else {
 		if len(txs.Txs) == 0 {
 			json.NewEncoder(w).Encode("No transactions found")
 		} else {
+			if s != nil {
+				for _, txDetail := range txs.Txs {
+					s.Save(store.FromTxDetailResponse(txDetail))
+				}
+			}
 			json.NewEncoder(w).Encode(txs.Txs)
 		}
 
