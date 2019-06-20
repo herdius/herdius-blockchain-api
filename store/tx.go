@@ -70,5 +70,5 @@ func FromTxDetailResponse(txDetail *protobuf.TxDetailResponse) *Tx {
 	tx.Sign = txDetail.Tx.Sign
 	tx.BlockID = txDetail.BlockId
 
-	return nil
+	return tx
 }
