@@ -69,6 +69,6 @@ func (d *detail) DBConnString() string {
 	if d.DBSslMode {
 		mode = "enable"
 	}
-	connStrFmt := "user=%s host=%s port=%d dbname=%s dbpassword=%s sslmode=%s"
+	connStrFmt := "user=%s host=%s port=%d dbname=%s password=%s sslmode=%s"
 	return fmt.Sprintf(connStrFmt, d.DBUser, d.DBHost, d.DBPort, d.DBName, d.DBPass, mode)
 }

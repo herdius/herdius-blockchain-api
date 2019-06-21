@@ -9,4 +9,5 @@ type Storer interface {
 	Get(id string) (*Tx, error)
 	GetBySender(address string) ([]*Tx, error)
 	GetByAssetAndSender(asset, address string) ([]*Tx, error)
+	GetByStatus(status string) ([]*Tx, error)
 }

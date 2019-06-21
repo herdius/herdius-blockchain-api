@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -15,6 +16,8 @@ import (
 	"github.com/herdius/herdius-blockchain-api/handler"
 	"github.com/herdius/herdius-blockchain-api/middleware"
 	"github.com/herdius/herdius-blockchain-api/network"
+	"github.com/herdius/herdius-blockchain-api/store"
+	"github.com/herdius/herdius-blockchain-api/store/postgres"
 	coreNet "github.com/herdius/herdius-core/p2p/network"
 )
 
@@ -25,8 +28,12 @@ func main() {
 
 // LaunchServer ...
 func LaunchServer() {
-	var wait time.Duration
+	var (
+		wait         time.Duration
+		syncInterval time.Duration
+	)
 	flag.DurationVar(&wait, "graceful-timeout", time.Second*3, "the duration for which the server gracefully waits for existing connections to finish - e.g. 15s or 1m")
+	flag.DurationVar(&syncInterval, "sync-interval", time.Second*5, "time to wait between db sync")
 	envFlag := flag.String("env", "dev", "environment to build network and run process for")
 	flag.Parse()
 
@@ -65,6 +72,35 @@ func LaunchServer() {
 			log.Println(err)
 		}
 	}()
+
+	var wg sync.WaitGroup
+	stopDBSyncCh := make(chan struct{}, 1)
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		configuration := config.GetConfiguration(env)
+		db, err := postgres.NewStore(configuration.DBConnString())
+		if err != nil {
+			log.Printf("Failed to create store: %v", err)
+			return
+		}
+
+		for {
+			select {
+			case <-stopDBSyncCh:
+				return
+			default:
+				if err := store.SyncPendingTxs(db, net, env); err != nil {
+					log.Printf("failed to sync pending tx: %v", err)
+				}
+				time.Sleep(syncInterval)
+			}
+
+		}
+
+	}()
 	log.Println("Supervisor discovered at:", supervisorAddr)
 
 	c := make(chan os.Signal, 1)
@@ -84,6 +120,10 @@ func LaunchServer() {
 	// <-ctx.Done() if your application should wait for other services
 	// to finalize based on context cancellation.
 	log.Println("shutting down")
+	log.Println("Notify sync db goroutine")
+	stopDBSyncCh <- struct{}{}
+	wg.Wait()
+	log.Println("sync db goroutine stopped, exiting...")
 	os.Exit(0)
 }
 
