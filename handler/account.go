@@ -100,8 +100,9 @@ func GetAccount(w http.ResponseWriter, r *http.Request, net *network.Network, en
 	if err != nil {
 		json.NewEncoder(w).Encode("Failed to retrieve acount detail due to: " + err.Error())
 	} else {
-		if len(account.Address) == 0 {
-			json.NewEncoder(w).Encode("Accound details not found for address: " + address)
+		if account == nil || len(account.Address) == 0 {
+			errMsg := "Please wait for block time of 15-30 seconds if account registration is requested otherwise accound details not found for address: "
+			json.NewEncoder(w).Encode(errMsg + address)
 			return
 		}
 
