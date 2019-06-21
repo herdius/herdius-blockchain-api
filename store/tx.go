@@ -6,6 +6,9 @@ import (
 	"github.com/herdius/herdius-blockchain-api/protobuf"
 )
 
+// StatusPending indicates a TX is in pending state
+const StatusPending = "pending"
+
 // Tx ...
 type Tx struct {
 	ID              string    `db:"id"`

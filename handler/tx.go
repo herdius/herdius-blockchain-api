@@ -48,18 +48,10 @@ func (s *service) PostTx(txReq protobuf.TxRequest, net *network.Network, env str
 		log.Printf("Tx ID: %v", msg.TxId)
 		log.Printf("Tx status: %v", msg.Status)
 		if s := getStore(configuration.DBConnString()); s != nil && msg.TxId != "" {
-			txDetailReq := protobuf.TxDetailRequest{TxId: msg.TxId}
-			res, err := supervisorNode.Request(ctx, &txDetailReq)
-			if err != nil {
-				log.Printf("Failed to get Tx after creating")
-			} else {
-				if txDetail, ok := res.(*protobuf.TxDetailResponse); ok {
-					if err := s.Save(store.FromTxDetailResponse(txDetail)); err != nil {
-						log.Printf("Failed to save Tx to database: %v", err)
-					}
-					log.Printf("Tx saved to database")
-				}
+			if err := s.Save(&store.Tx{ID: msg.TxId, Status: store.StatusPending}); err != nil {
+				log.Printf("Failed to save Tx to database: %v", err)
 			}
+			log.Printf("Tx saved to database")
 		}
 		return msg, nil
 	}
