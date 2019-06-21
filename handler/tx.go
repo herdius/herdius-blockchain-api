@@ -47,7 +47,7 @@ func (s *service) PostTx(txReq protobuf.TxRequest, net *network.Network, env str
 	case *protobuf.TxResponse:
 		log.Printf("Tx ID: %v", msg.TxId)
 		log.Printf("Tx status: %v", msg.Status)
-		if s := getStore(configuration.DBConnString()); s != nil {
+		if s := getStore(configuration.DBConnString()); s != nil && msg.TxId != "" {
 			txDetailReq := protobuf.TxDetailRequest{TxId: msg.TxId}
 			res, err := supervisorNode.Request(ctx, &txDetailReq)
 			if err != nil {
