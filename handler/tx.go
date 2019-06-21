@@ -333,7 +333,6 @@ func PutUpdateTxByTxID(w http.ResponseWriter, r *http.Request, net *network.Netw
 	res, err := srv.PutUpdateTxByTxID(&txRequest, net, env)
 
 	if err != nil {
-		log.Println(err.Error())
 		json.NewEncoder(w).Encode(err)
 	} else {
 		json.NewEncoder(w).Encode(res)
@@ -356,7 +355,7 @@ func (t *TxService) PutUpdateTxByTxID(txRequest *protobuf.TxUpdateRequest, net *
 	switch msg := res.(type) {
 	case *protobuf.TxUpdateResponse:
 		log.Printf("Tx Detail: %v", msg)
-		if s := getStore(configuration.DBConnString()); s != nil {
+		if s := getStore(configuration.DBConnString()); s != nil && msg.TxId != "" {
 			txDetailReq := protobuf.TxDetailRequest{TxId: msg.TxId}
 			res, err := supervisorNode.Request(ctx, &txDetailReq)
 			if err != nil {
