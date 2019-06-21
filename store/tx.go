@@ -16,6 +16,7 @@ type Tx struct {
 	Symbol          string    `db:"symbol"`
 	Network         string    `db:"network"`
 	Value           uint64    `db:"value"`
+	LockedAmount    uint64    `db:"locked_amount"`
 	Nonce           uint64    `db:"nonce"`
 	Message         string    `db:"message"`
 	Sign            string    `db:"sign"`
@@ -41,11 +42,12 @@ func (tx *Tx) ToTxDetailResponse() *protobuf.TxDetailResponse {
 		Sign:            tx.Sign,
 		Status:          tx.Status,
 		Asset: &protobuf.Asset{
-			Category: tx.Category,
-			Symbol:   tx.Symbol,
-			Network:  tx.Network,
-			Value:    tx.Value,
-			Nonce:    tx.Nonce,
+			Category:     tx.Category,
+			Symbol:       tx.Symbol,
+			Network:      tx.Network,
+			Value:        tx.Value,
+			LockedAmount: tx.LockedAmount,
+			Nonce:        tx.Nonce,
 		},
 	}
 
@@ -65,6 +67,7 @@ func FromTxDetailResponse(txDetail *protobuf.TxDetailResponse) *Tx {
 	tx.Symbol = txDetail.Tx.Asset.Symbol
 	tx.Network = txDetail.Tx.Asset.Network
 	tx.Value = txDetail.Tx.Asset.Value
+	tx.LockedAmount = txDetail.Tx.Asset.LockedAmount
 	tx.Nonce = txDetail.Tx.Asset.Nonce
 	tx.CreationDT = time.Now().UTC()
 	tx.Sign = txDetail.Tx.Sign
