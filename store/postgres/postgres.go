@@ -87,6 +87,27 @@ WHERE
 	sender_address = $1
 `
 
+const txSelectByStatusStmt = `
+SELECT
+	id,
+	sender_address,
+	sender_pubkey,
+	receiver_address,
+	category,
+	symbol,
+	network,
+	value,
+	nonce,
+	message,
+	sign,
+	status,
+	block_id,
+	created_date
+FROM "transaction"
+WHERE
+	status = $1
+`
+
 const txUpdateStmt = `
 UPDATE "transaction" SET
 	sender_address = :sender_address,
@@ -187,6 +208,15 @@ func (s *Store) GetBySender(address string) ([]*store.Tx, error) {
 func (s *Store) GetByAssetAndSender(asset, address string) ([]*store.Tx, error) {
 	var txs []*store.Tx
 	if err := s.db.Select(&txs, txSelectByAssetAndSenderStmt, asset, address); err != nil {
+		return nil, err
+	}
+	return txs, nil
+}
+
+// GetByStatus returns list of transaction filter by given status
+func (s *Store) GetByStatus(status string) ([]*store.Tx, error) {
+	var txs []*store.Tx
+	if err := s.db.Select(&txs, txSelectByStatusStmt, status); err != nil {
 		return nil, err
 	}
 	return txs, nil
