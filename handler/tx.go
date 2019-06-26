@@ -21,6 +21,7 @@ type TxServiceI interface {
 	GetTxsByAddress(string, *network.Network, string) (*protobuf.TxsResponse, error)
 	GetTxsByAssetAndAddress(string, string, *network.Network, string) (*protobuf.TxsResponse, error)
 	PutUpdateTxByTxID(*protobuf.TxUpdateRequest, *network.Network, string) (*protobuf.TxUpdateResponse, error)
+	GetLockedTxs(*network.Network, string) (*protobuf.TxLockedResponse, error)
 }
 
 // TxService ...
@@ -366,7 +367,7 @@ func (t *TxService) PutUpdateTxByTxID(txRequest *protobuf.TxUpdateRequest, net *
 	return nil, nil
 }
 
-// CancelRequest forwards a request to cancel a TX that is currently queued in the Supervisor memory pool
+// DeleteTx forwards a request to cancel a TX that is currently queued in the Supervisor memory pool
 func DeleteTx(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
 	params := mux.Vars(r)
 	if len(params["id"]) == 0 {
@@ -395,6 +396,28 @@ func DeleteTx(w http.ResponseWriter, r *http.Request, net *network.Network, env 
 	switch msg := res.(type) {
 	case *protobuf.TxUpdateResponse:
 		log.Printf("Tx Detail: %v", msg)
+		json.NewEncoder(w).Encode(msg)
+	}
+}
+
+// GetLockedTxs forwards a request to retrieve all locked Txs, usually called by Lambda signer
+func GetLockedTxs(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
+	configuration := config.GetConfiguration(env)
+	supervisorAddress := configuration.GetSupervisorAddress()
+	ctx := network.WithSignMessage(context.Background(), true)
+	supervisorNode, err := net.Client(supervisorAddress)
+
+	req := &protobuf.TxLockedRequest{}
+
+	res, err := supervisorNode.Request(ctx, req)
+	if err != nil {
+		log.Println("Failed to cancel tx: " + err.Error())
+		json.NewEncoder(w).Encode(fmt.Sprintf("Failed to cancel tx: %v", err))
+	}
+
+	switch msg := res.(type) {
+	case *protobuf.TxLockedResponse:
+		log.Printf("Txs locked response: %v", msg)
 		json.NewEncoder(w).Encode(msg)
 	}
 }
