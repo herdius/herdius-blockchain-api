@@ -38,7 +38,6 @@ func (s *service) PostTx(txReq protobuf.TxRequest, net *network.Network, env str
 
 	supervisorNode, _ := net.Client(supervisorAddress)
 	res, err := supervisorNode.Request(ctx, &txReq)
-
 	if err != nil {
 		return nil, fmt.Errorf(fmt.Sprintf("Failed to find block due to :%v", err))
 	}
@@ -414,6 +413,7 @@ func GetLockedTxs(w http.ResponseWriter, r *http.Request, net *network.Network, 
 		json.NewEncoder(w).Encode(fmt.Sprintf("Failed to find txs: %v", err))
 	}
 
+	log.Println("Received response here")
 	switch msg := res.(type) {
 	case *protobuf.TxLockedResponse:
 		log.Printf("Txs locked response: %v", msg)
