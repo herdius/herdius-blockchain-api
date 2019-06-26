@@ -21,7 +21,6 @@ type TxServiceI interface {
 	GetTxsByAddress(string, *network.Network, string) (*protobuf.TxsResponse, error)
 	GetTxsByAssetAndAddress(string, string, *network.Network, string) (*protobuf.TxsResponse, error)
 	PutUpdateTxByTxID(*protobuf.TxUpdateRequest, *network.Network, string) (*protobuf.TxUpdateResponse, error)
-	GetLockedTxs(*network.Network, string) (*protobuf.TxLockedResponse, error)
 }
 
 // TxService ...
@@ -411,8 +410,8 @@ func GetLockedTxs(w http.ResponseWriter, r *http.Request, net *network.Network, 
 
 	res, err := supervisorNode.Request(ctx, req)
 	if err != nil {
-		log.Println("Failed to cancel tx: " + err.Error())
-		json.NewEncoder(w).Encode(fmt.Sprintf("Failed to cancel tx: %v", err))
+		log.Println("Failed to find txs: " + err.Error())
+		json.NewEncoder(w).Encode(fmt.Sprintf("Failed to find txs: %v", err))
 	}
 
 	switch msg := res.(type) {
