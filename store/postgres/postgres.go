@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -110,6 +111,28 @@ SELECT
 FROM "transaction"
 WHERE
 	status = $1
+`
+
+const txSelectByTypeStmt = `
+SELECT
+	id,
+	sender_address,
+	sender_pubkey,
+	receiver_address,
+	category,
+	symbol,
+	network,
+	value,
+	nonce,
+	message,
+	sign,
+	status,
+	block_id,
+	created_date,
+	type
+FROM "transaction"
+WHERE
+	type = $1
 `
 
 const txUpdateStmt = `
@@ -226,4 +249,14 @@ func (s *Store) GetByStatus(status string) ([]*store.Tx, error) {
 		return nil, err
 	}
 	return txs, nil
+}
+
+// GetByType returns lost of transaction filtered by given type
+func (s *Store) GetByType(typ string) ([]*store.Tx, error) {
+	var txs []*store.Tx
+	err := s.db.Select(&txs, txSelectByTypeStmt, typ)
+	if err != nil {
+		return nil, fmt.Errorf("couldn't select transactions by type: %v", err)
+	}
+	return nil, nil
 }

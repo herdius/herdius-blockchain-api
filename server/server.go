@@ -176,9 +176,9 @@ func addRoutes(net *coreNet.Network, env string, router *mux.Router) {
 		func(w http.ResponseWriter, r *http.Request) {
 			handler.GetTxsByAssetAndAddress(w, r, net, env)
 		}).Methods("GET")
-	router.HandleFunc("/locked",
+	router.HandleFunc("/txlock",
 		func(w http.ResponseWriter, r *http.Request) {
-			handler.GetLockedTxs(w, r, net, env)
+			handler.GetLockTxs(w, r, net, env)
 		}).Methods("GET")
 	router.HandleFunc("/",
 		func(w http.ResponseWriter, r *http.Request) {

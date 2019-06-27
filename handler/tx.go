@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/gorilla/mux"
 	"github.com/herdius/herdius-blockchain-api/config"
 	"github.com/herdius/herdius-blockchain-api/protobuf"
@@ -398,9 +399,31 @@ func DeleteTx(w http.ResponseWriter, r *http.Request, net *network.Network, env 
 	}
 }
 
-// GetLockedTxs forwards a request to retrieve all locked Txs, usually called by Lambda signer
-func GetLockedTxs(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
+// GetLockTxs forwards a request to retrieve all locked Txs, usually called by Lambda signer
+func GetLockTxs(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
 	configuration := config.GetConfiguration(env)
+
+	s := getStore(configuration.DBConnString())
+	if s == nil {
+		log.Println("Failed to get pg store; store empty")
+		json.NewEncoder(w).Encode(fmt.Sprintf("Failed to get pg store; store empty"))
+	}
+	txs, err := s.GetByType("lock")
+	if err != nil {
+		log.Printf("Failed to get transactions from pg by type == lock: %v", err)
+		json.NewEncoder(w).Encode(fmt.Sprintf("Failed to get transactions from pg by type == lock: %v", err))
+	}
+	if len(txs) < 0 {
+		log.Printf("Failed to find any txs in pg store with type == lock: %v", err)
+		json.NewEncoder(w).Encode(fmt.Sprintf("Failed to find any txs in pg store with type == lock: %v", err))
+	}
+	spew.Dump(txs)
+	json.NewEncoder(w).Encode(txs)
+
+	// Add Tx field on PG table for "processed" meaning was it processed by AWS Lambda
+	// Read from Postgres where type = lock and status = success
+
+	/* For Supervisor call:
 	supervisorAddress := configuration.GetSupervisorAddress()
 	ctx := network.WithSignMessage(context.Background(), true)
 	supervisorNode, err := net.Client(supervisorAddress)
@@ -419,4 +442,5 @@ func GetLockedTxs(w http.ResponseWriter, r *http.Request, net *network.Network, 
 		log.Printf("Txs locked response: %v", msg)
 		json.NewEncoder(w).Encode(msg)
 	}
+	*/
 }
