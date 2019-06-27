@@ -65,6 +65,7 @@ message Asset {
     string external_reciever_address  = 8;
     uint64 external_nonce             = 9;
     uint64 external_block_height      = 10;
+    uint64 locked_amount              = 11;
 }
 
 message TxRequest {
