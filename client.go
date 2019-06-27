@@ -7,6 +7,7 @@ import (
 	"flag"
 	"io/ioutil"
 	"log"
+	"math"
 	"net/http"
 	"strings"
 
@@ -35,6 +36,8 @@ func main() {
 		sendAccountRegisterTx(endpoint)
 	} else if strings.EqualFold(*txType, "external") {
 		postExternalTx(endpoint)
+	} else if strings.EqualFold(*txType, "lock") {
+		sendFundLockTx(endpoint)
 	} else {
 		postTx(endpoint)
 	}
@@ -64,18 +67,18 @@ func sendAccountRegisterTx(endpoint string) {
 	log.Println("Account update request : " + senderAddress)
 	msg := "Update my account"
 	asset := &protobuf.Asset{
-		Category: "crypto",
-		Symbol:   "HER",
-		Network:  "Herdius",
-		Value:    15,
-		Fee:      0,
-		Nonce:    0,
+		Category:              "crypto",
+		Symbol:                "HER",
+		Network:               "Herdius",
+		Value:                 15,
+		Fee:                   0,
+		Nonce:                 0,
 		ExternalSenderAddress: "0x44c46Ed496B94fafE8A81b9Ab93B27935fcA1603",
 	}
 
 	// In case ETH or external asset address is required to be registered
 	// use the below Asset Object
-	 asset = &protobuf.Asset{
+	asset = &protobuf.Asset{
 		Category:              "crypto",
 		Symbol:                "ETH",
 		Network:               "Herdius",
@@ -83,7 +86,7 @@ func sendAccountRegisterTx(endpoint string) {
 		Fee:                   0,
 		Nonce:                 1,
 		ExternalSenderAddress: "0x44c46Ed496B94fafE8A81b9Ab93B27935fcA1603",
-	} 
+	}
 	tx := protobuf.Tx{
 		SenderAddress: senderAddress,
 		SenderPubkey:  senderB64,
@@ -237,7 +240,7 @@ func postTx(endpoint string) {
 	if err != nil {
 		panic(err)
 	}
-	for i := 1; i <= 1; i++ {
+	for i := 2; i <= 2; i++ {
 
 		asset := &protobuf.Asset{
 			Category: "crypto",
@@ -294,4 +297,86 @@ func postTx(endpoint string) {
 		log.Println(txResponse.TxId)
 		log.Println(txResponse.Status)
 	}
+}
+
+func sendFundLockTx(endpoint string) {
+	// Create key pairs and store in a local file
+	// User 1
+	// Address: HHy1CuT3UxCGJ3BHydLEvR5ut6HRy2qUvm
+
+	// ETH: 0xD8f647855876549d2623f52126CE40D053a2ef6A
+	senderPrivKey, err := key.LoadOrGenNodeKey("./tempKey.json")
+
+	// User 2
+	// Address: HKTXmdsHyZn1B2ErRKiG4iN34YixCgdQgx
+	//Eth Add: 0x9aA7E9819D781eFf5B239b572c4Fe8F964a899c9
+	//senderPrivKey, err = key.LoadOrGenNodeKey("./tempKeySign.json")
+
+	if err != nil {
+		panic(err)
+	}
+
+	sendPubKey := senderPrivKey.PubKey()
+	var pubkeyBytes secp256k1.PubKeySecp256k1
+	pubkeyBytes = sendPubKey.(secp256k1.PubKeySecp256k1)
+
+	senderB64 := b64.StdEncoding.EncodeToString(pubkeyBytes[:])
+	senderAddress := sendPubKey.GetAddress()
+	log.Println("Fund lock transaction : " + senderAddress)
+	msg := "Lock ETH"
+
+	// In case ETH or external asset address is required to be registered
+	// use the below Asset Object
+	value := uint64(1 * math.Pow10(18)) // Tx 0.1 ETH
+	asset := &protobuf.Asset{
+		Category:              "crypto",
+		Symbol:                "ETH",
+		Network:               "Herdius",
+		Value:                 value,
+		Fee:                   0,
+		Nonce:                 2,
+		ExternalSenderAddress: "0x9aA7E9819D781eFf5B239b572c4Fe8F964a899c9",
+	}
+
+	tx := protobuf.Tx{
+		SenderAddress:   senderAddress,
+		SenderPubkey:    senderB64,
+		RecieverAddress: "Hx00000000000000000000000000000000",
+		Message:         msg,
+		Type:            "lock",
+		Asset:           asset,
+	}
+
+	// Sign the transaction detail
+	txbBeforeSign, _ := json.Marshal(tx)
+
+	sig, err := senderPrivKey.PrivKey.Sign(txbBeforeSign)
+
+	tx.Sign = b64.StdEncoding.EncodeToString(sig)
+	// Post tx to blockchain.
+	txReq := protobuf.TxRequest{
+		Tx: &tx,
+	}
+	txJSON, err := json.Marshal(txReq)
+	if err != nil {
+		log.Fatalf("Failed to Marshal %v", err)
+	}
+	response, err := http.Post(endpoint, "application/json", bytes.NewBuffer(txJSON))
+	if err != nil {
+		log.Fatalf("Failed to Marshal %v", err)
+	}
+
+	defer response.Body.Close()
+	body, readErr := ioutil.ReadAll(response.Body)
+	if readErr != nil {
+		log.Fatalf("Failed to read http response %s.", readErr)
+	}
+	var txResponse protobuf.TxResponse
+	jsonErr := json.Unmarshal(body, &txResponse)
+	if jsonErr != nil {
+		log.Fatalf("Failed to Unmarshal %s.", jsonErr)
+	}
+
+	log.Println(txResponse.TxId)
+	log.Printf("txResponse : %+v \n", txResponse)
 }
