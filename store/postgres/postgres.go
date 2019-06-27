@@ -3,6 +3,7 @@ package postgres
 import (
 	"database/sql"
 	"fmt"
+	"log"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -128,8 +129,7 @@ SELECT
 	sign,
 	status,
 	block_id,
-	created_date,
-	type
+	created_date
 FROM "transaction"
 WHERE
 	type = $1
@@ -150,6 +150,7 @@ UPDATE "transaction" SET
 	sign = :sign,
 	status = :status,
 	block_id = :block_id,
+	type = :type,
 	created_date = :created_date
 WHERE
 	id = :id
@@ -258,5 +259,6 @@ func (s *Store) GetByType(typ string) ([]*store.Tx, error) {
 	if err != nil {
 		return nil, fmt.Errorf("couldn't select transactions by type: %v", err)
 	}
-	return nil, nil
+	log.Println("Finishing GetByType()")
+	return txs, nil
 }
