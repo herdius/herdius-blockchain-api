@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -20,6 +21,7 @@ type TxServiceI interface {
 	GetTx(string, *network.Network, string) (*protobuf.TxDetailResponse, error)
 	GetTxsByAddress(string, *network.Network, string) (*protobuf.TxsResponse, error)
 	GetTxsByAssetAndAddress(string, string, *network.Network, string) (*protobuf.TxsResponse, error)
+	GetLockedTxsByBlockNumber(int64, *network.Network, string) (*protobuf.TxLockedResponse, error)
 	PutUpdateTxByTxID(*protobuf.TxUpdateRequest, *network.Network, string) (*protobuf.TxUpdateResponse, error)
 }
 
@@ -397,4 +399,52 @@ func DeleteTx(w http.ResponseWriter, r *http.Request, net *network.Network, env 
 		log.Printf("Tx Detail: %v", msg)
 		json.NewEncoder(w).Encode(msg)
 	}
+}
+
+// GetLockedTxsByBlockNumber returns all locked txs in a block by its number
+func GetLockedTxsByBlockNumber(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
+	params := mux.Vars(r)
+	if len(params["block_number"]) == 0 {
+		json.NewEncoder(w).Encode("Request invalid, 'block_number' param missing\n")
+		return
+	}
+
+	blockNumber, err := strconv.ParseInt(params["blockNumber"], 10, 64)
+	if err != nil {
+		json.NewEncoder(w).Encode("Request invalid, invalid 'block_number'\n")
+		return
+	}
+
+	srv := TxService{}
+	txs, err := srv.GetLockedTxsByBlockNumber(blockNumber, net, env)
+	if err != nil {
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+	if len(txs.Txs) == 0 {
+		json.NewEncoder(w).Encode("No locked transactions found in block")
+	} else {
+		json.NewEncoder(w).Encode(txs.Txs)
+	}
+}
+
+// GetLockedTxsByBlockNumber ...
+func (t *TxService) GetLockedTxsByBlockNumber(blockNumber int64, net *network.Network, env string) (*protobuf.TxLockedResponse, error) {
+	configuration := config.GetConfiguration(env)
+	supervisorAddress := configuration.GetSupervisorAddress()
+	ctx := network.WithSignMessage(context.Background(), true)
+	supervisorNode, err := net.Client(supervisorAddress)
+
+	req := &protobuf.TxLockedRequest{BlockNumber: blockNumber}
+
+	res, err := supervisorNode.Request(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get locked txs due to: %v", err)
+	}
+
+	switch msg := res.(type) {
+	case *protobuf.TxLockedResponse:
+		return msg, nil
+	}
+	return nil, nil
 }
