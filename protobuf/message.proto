@@ -147,3 +147,11 @@ message EBalanceAsset {
 message TxDeleteRequest {
     string tx_id = 1;
 }
+
+message TxLockedRequest {
+    int64 block_number = 1;
+}
+
+message TxLockedResponse {
+    repeated Tx txs = 1;
+}
