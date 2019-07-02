@@ -176,6 +176,10 @@ func addRoutes(net *coreNet.Network, env string, router *mux.Router) {
 		func(w http.ResponseWriter, r *http.Request) {
 			handler.GetTxsByAssetAndAddress(w, r, net, env)
 		}).Methods("GET")
+	router.HandleFunc("/txs/{block_number}/locked",
+		func(w http.ResponseWriter, r *http.Request) {
+			handler.GetLockedTxsByBlockNumber(w, r, net, env)
+		}).Methods("GET")
 	router.HandleFunc("/",
 		func(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode("That path does not exist")
