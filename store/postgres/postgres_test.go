@@ -40,6 +40,7 @@ func TestTx(t *testing.T) {
 		Status:          "success",
 		Symbol:          "ETH",
 		Value:           1,
+		LockedAmount:    0,
 		Network:         "herdius",
 		CreationDT:      now,
 	}

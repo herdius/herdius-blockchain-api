@@ -65,6 +65,7 @@ message Asset {
     string external_reciever_address  = 8;
     uint64 external_nonce             = 9;
     uint64 external_block_height      = 10;
+    uint64 locked_amount              = 11;
 }
 
 message TxRequest {
@@ -145,4 +146,12 @@ message EBalanceAsset {
 // TxCancelRequest forwards a Tx cancel request by the client to the Supervisor
 message TxDeleteRequest {
     string tx_id = 1;
+}
+
+message TxLockedRequest {
+    int64 block_number = 1;
+}
+
+message TxLockedResponse {
+    repeated Tx txs = 1;
 }
