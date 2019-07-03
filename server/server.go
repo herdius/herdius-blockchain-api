@@ -176,7 +176,7 @@ func addRoutes(net *coreNet.Network, env string, router *mux.Router) {
 		func(w http.ResponseWriter, r *http.Request) {
 			handler.GetTxsByAssetAndAddress(w, r, net, env)
 		}).Methods("GET")
-	router.HandleFunc("/txs/lock/{block_number}",
+	router.HandleFunc("/lock/txs/{block_number}",
 		func(w http.ResponseWriter, r *http.Request) {
 			handler.GetLockedTxsByBlockNumber(w, r, net, env)
 		}).Methods("GET")
