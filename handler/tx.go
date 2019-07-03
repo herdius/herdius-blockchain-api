@@ -409,7 +409,7 @@ func GetLockedTxsByBlockNumber(w http.ResponseWriter, r *http.Request, net *netw
 		return
 	}
 
-	blockNumber, err := strconv.ParseInt(params["blockNumber"], 10, 64)
+	blockNumber, err := strconv.ParseInt(params["block_number"], 10, 64)
 	if err != nil {
 		json.NewEncoder(w).Encode("Request invalid, invalid 'block_number'\n")
 		return
