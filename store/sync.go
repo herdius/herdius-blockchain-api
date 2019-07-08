@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"log"
 
 	"github.com/herdius/herdius-blockchain-api/config"
 	"github.com/herdius/herdius-blockchain-api/protobuf"
@@ -12,7 +13,15 @@ import (
 func SyncPendingTxs(s Storer, net *network.Network, env string) error {
 	configuration := config.GetConfiguration(env)
 	supervisorAddress := configuration.GetSupervisorAddress()
-	supervisorNode, _ := net.Client(supervisorAddress)
+	supervisorNode, err := net.Client(supervisorAddress)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := supervisorNode.Close(); err != nil {
+			log.Printf("failed to close connection to supervisor: %v", err)
+		}
+	}()
 	txs, err := s.GetByStatus(StatusPending)
 	if err != nil {
 		return err

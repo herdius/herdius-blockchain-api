@@ -46,6 +46,11 @@ func (s *service) GetAccountByAddress(accAddr string, net *network.Network, env 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create client: %v", err)
 	}
+	defer func() {
+		if err := supervisorNode.Close(); err != nil {
+			log.Printf("failed to close connection to supervisor: %v", err)
+		}
+	}()
 	if supervisorNode.Address == "" {
 		fmt.Println("empty supervisornode:", supervisorNode)
 	}
