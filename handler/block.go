@@ -42,7 +42,15 @@ func (s *service) GetBlockByHeight(height uint64, net *network.Network, env stri
 
 	ctx := network.WithSignMessage(context.Background(), true)
 
-	supervisorNode, _ := net.Client(supervisorAddress)
+	supervisorNode, err := net.Client(supervisorAddress)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err := supervisorNode.Close(); err != nil {
+			log.Printf("failed to close connection to supervisor: %v", err)
+		}
+	}()
 	res, err := supervisorNode.Request(ctx, &protoplugin.BlockHeightRequest{BlockHeight: height})
 	if err != nil {
 		return nil, fmt.Errorf(fmt.Sprintf("Failed to find block due to: %v", err))
