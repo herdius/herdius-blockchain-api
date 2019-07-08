@@ -38,15 +38,7 @@ func (s *service) PostTx(txReq protobuf.TxRequest, net *network.Network, env str
 
 	ctx := network.WithSignMessage(context.Background(), true)
 
-	supervisorNode, err := net.Client(supervisorAddress)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		if err := supervisorNode.Close(); err != nil {
-			log.Printf("failed to close connection to supervisor: %v", err)
-		}
-	}()
+	supervisorNode, _ := net.Client(supervisorAddress)
 	res, err := supervisorNode.Request(ctx, &txReq)
 
 	if err != nil {
@@ -157,15 +149,7 @@ func (t *TxService) GetTx(id string, net *network.Network, env string) (*protobu
 	configuration := config.GetConfiguration(env)
 	supervisorAddress := configuration.GetSupervisorAddress()
 	ctx := network.WithSignMessage(context.Background(), true)
-	supervisorNode, err := net.Client(supervisorAddress)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		if err := supervisorNode.Close(); err != nil {
-			log.Printf("failed to close connection to supervisor: %v", err)
-		}
-	}()
+	supervisorNode, _ := net.Client(supervisorAddress)
 	txDetailReq := protobuf.TxDetailRequest{
 		TxId: id,
 	}
@@ -231,14 +215,6 @@ func (t *TxService) GetTxsByAddress(address string, net *network.Network, env st
 	supervisorAddress := configuration.GetSupervisorAddress()
 	ctx := network.WithSignMessage(context.Background(), true)
 	supervisorNode, err := net.Client(supervisorAddress)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		if err := supervisorNode.Close(); err != nil {
-			log.Printf("failed to close connection to supervisor: %v", err)
-		}
-	}()
 
 	req := &protobuf.TxsByAddressRequest{
 		Address: address,
@@ -311,14 +287,7 @@ func (t *TxService) GetTxsByAssetAndAddress(asset, address string, net *network.
 	supervisorAddress := configuration.GetSupervisorAddress()
 	ctx := network.WithSignMessage(context.Background(), true)
 	supervisorNode, err := net.Client(supervisorAddress)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		if err := supervisorNode.Close(); err != nil {
-			log.Printf("failed to close connection to supervisor: %v", err)
-		}
-	}()
+
 	req := &protobuf.TxsByAssetAndAddressRequest{
 		Address: address,
 		Asset:   asset,
@@ -370,14 +339,6 @@ func (t *TxService) PutUpdateTxByTxID(txRequest *protobuf.TxUpdateRequest, net *
 	supervisorAddress := configuration.GetSupervisorAddress()
 	ctx := network.WithSignMessage(context.Background(), true)
 	supervisorNode, err := net.Client(supervisorAddress)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		if err := supervisorNode.Close(); err != nil {
-			log.Printf("failed to close connection to supervisor: %v", err)
-		}
-	}()
 
 	res, err := supervisorNode.Request(ctx, txRequest)
 	if err != nil {
@@ -422,15 +383,6 @@ func DeleteTx(w http.ResponseWriter, r *http.Request, net *network.Network, env 
 	supervisorAddress := configuration.GetSupervisorAddress()
 	ctx := network.WithSignMessage(context.Background(), true)
 	supervisorNode, err := net.Client(supervisorAddress)
-	if err != nil {
-		log.Printf("failed to create supervisor client: %v", err)
-		return
-	}
-	defer func() {
-		if err := supervisorNode.Close(); err != nil {
-			log.Printf("failed to close connection to supervisor: %v", err)
-		}
-	}()
 
 	req := &protobuf.TxDeleteRequest{
 		TxId: id,
@@ -482,14 +434,6 @@ func (t *TxService) GetLockedTxsByBlockNumber(blockNumber int64, net *network.Ne
 	supervisorAddress := configuration.GetSupervisorAddress()
 	ctx := network.WithSignMessage(context.Background(), true)
 	supervisorNode, err := net.Client(supervisorAddress)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		if err := supervisorNode.Close(); err != nil {
-			log.Printf("failed to close connection to supervisor: %v", err)
-		}
-	}()
 
 	req := &protobuf.TxLockedRequest{BlockNumber: blockNumber}
 
