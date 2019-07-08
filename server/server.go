@@ -53,16 +53,16 @@ func LaunchServer() {
 	supervisorAdds = append(supervisorAdds, supervisorAddr)
 
 	connTest := new(middleware.Connected)
-	router := *mux.NewRouter()
-	addRoutes(net, env, &router)
+	router := mux.NewRouter()
+	addRoutes(net, env, router)
 	router.Use(connTest.IsConnected)
 
 	srv := &http.Server{
 		Addr:         "0.0.0.0:80",
-		WriteTimeout: time.Second * 15,
-		ReadTimeout:  time.Second * 15,
+		WriteTimeout: time.Second * 60,
+		ReadTimeout:  time.Second * 60,
 		IdleTimeout:  time.Second * 60,
-		Handler:      &router,
+		Handler:      router,
 	}
 	go func() {
 		connPinging(net, supervisorAdds, connTest)
