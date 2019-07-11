@@ -16,13 +16,16 @@ import (
 
 // Account : Account Detail
 type Account struct {
-	Nonce           uint64 `json:"nonce"`
-	Address         string `json:"address"`
-	Balance         uint64 `json:"balance"`
-	StorageRoot     string `json:"storageRoot"`
-	PublickKey      string `json:"publicKey"`
-	Erc20Address    string `json:"erc20Address"`
-	ExternalNonce   uint64
+	Nonce        uint64 `json:"nonce"`
+	Address      string `json:"address"`
+	Balance      uint64 `json:"balance"`
+	StorageRoot  string `json:"storageRoot"`
+	PublickKey   string `json:"publicKey"`
+	Erc20Address string `json:"erc20Address"`
+
+	FirstExternalAddress map[string]string
+	ExternalNonce        uint64
+
 	LastBlockHeight uint64
 	EBalances       map[string]map[string]EBalance
 }
@@ -65,6 +68,7 @@ func (s *service) GetAccountByAddress(accAddr string, net *network.Network, env 
 		acc.Erc20Address = msg.Erc20Address
 		acc.ExternalNonce = msg.ExternalNonce
 		acc.LastBlockHeight = msg.LastBlockHeight
+		acc.FirstExternalAddress = msg.FirstExternalAddress
 
 		eBalances := make(map[string]map[string]EBalance)
 		for asset, assetAccount := range msg.EBalances {
