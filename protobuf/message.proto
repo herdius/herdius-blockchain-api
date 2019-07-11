@@ -40,7 +40,10 @@ message AccountResponse {
   string erc20_address = 6;
   uint64 external_nonce = 7;
   uint64 last_block_height = 8;
+
   map<string,EBalanceAsset> eBalances = 9;
+  map<string,string> FirstExternalAddress = 10;
+
 }
 
 message Tx {
