@@ -68,7 +68,12 @@ func (s *service) GetAccountByAddress(accAddr string, net *network.Network, env 
 		acc.Erc20Address = msg.Erc20Address
 		acc.ExternalNonce = msg.ExternalNonce
 		acc.LastBlockHeight = msg.LastBlockHeight
-		acc.FirstExternalAddress = msg.FirstExternalAddress
+		firstExAddress := make(map[string]string)
+
+		for k, v := range msg.FirstExternalAddress {
+			firstExAddress[k] = v
+		}
+		acc.FirstExternalAddress = firstExAddress
 
 		eBalances := make(map[string]map[string]EBalance)
 		for asset, assetAccount := range msg.EBalances {
