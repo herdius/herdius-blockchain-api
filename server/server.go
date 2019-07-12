@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -103,9 +104,9 @@ func LaunchServer() {
 	}()
 	log.Println("Supervisor discovered at:", supervisorAddr)
 
-	c := make(chan os.Signal, 1)
+	c := make(chan os.Signal, 2)
 
-	signal.Notify(c, os.Interrupt)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 
 	// Block until we receive our signal.
 	<-c
