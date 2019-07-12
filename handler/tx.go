@@ -416,15 +416,15 @@ func GetLockedTxsByBlockNumber(w http.ResponseWriter, r *http.Request, net *netw
 	}
 
 	srv := TxService{}
-	txs, err := srv.GetLockedTxsByBlockNumber(blockNumber, net, env)
+	txResp, err := srv.GetLockedTxsByBlockNumber(blockNumber, net, env)
 	if err != nil {
 		json.NewEncoder(w).Encode(err.Error())
 		return
 	}
-	if len(txs.Txs) == 0 {
+	if txResp == nil {
 		json.NewEncoder(w).Encode("No locked transactions found in block")
 	} else {
-		json.NewEncoder(w).Encode(txs.Txs)
+		json.NewEncoder(w).Encode(txResp.Txs)
 	}
 }
 
