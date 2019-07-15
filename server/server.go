@@ -89,11 +89,11 @@ func LaunchServer() {
 		}
 
 		for {
-			if *connTest {
-				select {
-				case <-stopDBSyncCh:
-					return
-				default:
+			select {
+			case <-stopDBSyncCh:
+				return
+			default:
+				if *connTest {
 					if err := store.SyncPendingTxs(db, net, env); err != nil {
 						log.Printf("failed to sync pending tx: %v", err)
 					}
