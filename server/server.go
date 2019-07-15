@@ -114,18 +114,19 @@ func LaunchServer() {
 	// Create a deadline to wait for.
 	ctx, cancel := context.WithTimeout(context.Background(), wait)
 	defer cancel()
+
 	// Doesn't block if no connections, but will otherwise wait
 	// until the timeout deadline.
-	srv.Shutdown(ctx)
 	// Optionally, you could run srv.Shutdown in a goroutine and block on
 	// <-ctx.Done() if your application should wait for other services
 	// to finalize based on context cancellation.
+	srv.Shutdown(ctx)
 	log.Println("shutting down")
+
 	log.Println("Notify sync db goroutine")
 	stopDBSyncCh <- struct{}{}
 	wg.Wait()
 	log.Println("sync db goroutine stopped, exiting...")
-	os.Exit(0)
 }
 
 func connPinging(net *coreNet.Network, supervisorAdds []string, connTest *middleware.Connected) {
