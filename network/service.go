@@ -66,7 +66,8 @@ func networkBuilder(env string) *network.Builder {
 	opcode.RegisterMessageType(opcode.Opcode(1126), &apiProtobuf.TxDeleteRequest{})
 	opcode.RegisterMessageType(opcode.Opcode(1127), &apiProtobuf.TxLockedRequest{})
 	opcode.RegisterMessageType(opcode.Opcode(1128), &apiProtobuf.TxLockedResponse{})
-
+	opcode.RegisterMessageType(opcode.Opcode(1131), &apiProtobuf.TxRedeemRequest{})
+	opcode.RegisterMessageType(opcode.Opcode(1132), &apiProtobuf.TxRedeemResponse{})
 	builder := network.NewBuilder(env)
 	builder.SetKeys(keys)
 	builder.SetAddress(network.FormatAddress(configuration.TCP, configuration.SelfIP, uint16(configuration.ConnectionPort)))

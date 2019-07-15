@@ -250,10 +250,10 @@ func (s *Store) GetByStatus(status string) ([]*store.Tx, error) {
 	return txs, nil
 }
 
-// GetLockedTxByBlockHeight returns list of transaction filter by given block height.
-func (s *Store) GetLockedTxByBlockHeight(height uint64) ([]*store.Tx, error) {
+// GetTxByTypeBlockHeight returns list of transaction filter by given block height.
+func (s *Store) GetTxByTypeBlockHeight(txType string, height uint64) ([]*store.Tx, error) {
 	var txs []*store.Tx
-	if err := s.db.Select(&txs, txSelectByLockBlockHeight, "lock", height); err != nil {
+	if err := s.db.Select(&txs, txSelectByLockBlockHeight, txType, height); err != nil {
 		return nil, err
 	}
 	return txs, nil
