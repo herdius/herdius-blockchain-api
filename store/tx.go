@@ -76,6 +76,6 @@ func FromTxDetailResponse(txDetail *protobuf.TxDetailResponse) *Tx {
 	tx.CreationDT = time.Now().UTC()
 	tx.Sign = txDetail.Tx.Sign
 	tx.BlockID = txDetail.BlockId
-
+	tx.Type = txDetail.Tx.Type
 	return tx
 }

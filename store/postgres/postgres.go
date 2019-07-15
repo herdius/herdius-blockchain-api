@@ -175,7 +175,7 @@ SELECT
 	created_date
 FROM "transaction"
 WHERE
-block_id = $2 AND type = $1
+block_id = $2 AND lower("type") = lower($1)
 `
 
 // Store wraps *sqlx.DB
