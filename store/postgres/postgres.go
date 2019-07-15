@@ -156,7 +156,7 @@ WHERE
 	sender_address = $2
 `
 
-const txSelectByBlockHeight = `
+const txSelectByLockBlockHeight = `
 SELECT
 	id,
 	sender_address,
@@ -250,10 +250,10 @@ func (s *Store) GetByStatus(status string) ([]*store.Tx, error) {
 	return txs, nil
 }
 
-// GetByBlockHeight returns list of transaction filter by given block height.
-func (s *Store) GetByBlockHeight(height uint64) ([]*store.Tx, error) {
+// GetLockedTxByBlockHeight returns list of transaction filter by given block height.
+func (s *Store) GetLockedTxByBlockHeight(height uint64) ([]*store.Tx, error) {
 	var txs []*store.Tx
-	if err := s.db.Select(&txs, txSelectByBlockHeight, height); err != nil {
+	if err := s.db.Select(&txs, txSelectByLockBlockHeight, "lock", height); err != nil {
 		return nil, err
 	}
 	return txs, nil

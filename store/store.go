@@ -10,5 +10,5 @@ type Storer interface {
 	GetBySender(address string) ([]*Tx, error)
 	GetByAssetAndSender(asset, address string) ([]*Tx, error)
 	GetByStatus(status string) ([]*Tx, error)
-	GetByBlockHeight(height uint64) ([]*Tx, error)
+	GetLockedTxByBlockHeight(height uint64) ([]*Tx, error)
 }

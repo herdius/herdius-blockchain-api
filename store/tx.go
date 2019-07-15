@@ -26,6 +26,7 @@ type Tx struct {
 	Status          string    `db:"status"`
 	BlockID         uint64    `db:"block_id"`
 	CreationDT      time.Time `db:"created_date"`
+	TxType          string    `db:"tx_type"`
 }
 
 // ToTxDetailResponse converts a Tx to TxDetailResponse.

@@ -418,7 +418,7 @@ func GetLockedTxsByBlockNumber(w http.ResponseWriter, r *http.Request, net *netw
 	configuration := config.GetConfiguration(env)
 	s := getStore(configuration.DBConnString())
 	if s != nil {
-		if txs, err := s.GetByBlockHeight(uint64(blockNumber)); err == nil && len(txs) > 0 {
+		if txs, err := s.GetLockedTxByBlockHeight(uint64(blockNumber)); err == nil && len(txs) > 0 {
 			res := &protobuf.TxsResponse{}
 			res.Txs = make([]*protobuf.TxDetailResponse, len(txs))
 			for i, tx := range txs {
