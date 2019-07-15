@@ -415,8 +415,63 @@ func GetLockedTxsByBlockNumber(w http.ResponseWriter, r *http.Request, net *netw
 		return
 	}
 
+	configuration := config.GetConfiguration(env)
+	s := getStore(configuration.DBConnString())
+	if s != nil {
+		if txs, err := s.GetTxByTypeBlockHeight("lock", uint64(blockNumber)); err == nil && len(txs) > 0 {
+			res := &protobuf.TxsResponse{}
+			res.Txs = make([]*protobuf.TxDetailResponse, len(txs))
+			for i, tx := range txs {
+				res.Txs[i] = tx.ToTxDetailResponse()
+			}
+			json.NewEncoder(w).Encode(res)
+			return
+		}
+	}
+
 	srv := TxService{}
 	txResp, err := srv.GetLockedTxsByBlockNumber(blockNumber, net, env)
+	if err != nil {
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+	if txResp == nil {
+		json.NewEncoder(w).Encode("No locked transactions found in block")
+	} else {
+		json.NewEncoder(w).Encode(txResp.Txs)
+	}
+}
+
+// GetRedeemTxsByBlockNumber returns all locked txs in a block by its number
+func GetRedeemTxsByBlockNumber(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
+	params := mux.Vars(r)
+	if len(params["block_number"]) == 0 {
+		json.NewEncoder(w).Encode("Request invalid, 'block_number' param missing\n")
+		return
+	}
+
+	blockNumber, err := strconv.ParseInt(params["block_number"], 10, 64)
+	if err != nil {
+		json.NewEncoder(w).Encode("Request invalid, invalid 'block_number'\n")
+		return
+	}
+
+	configuration := config.GetConfiguration(env)
+	s := getStore(configuration.DBConnString())
+	if s != nil {
+		if txs, err := s.GetTxByTypeBlockHeight("redeem", uint64(blockNumber)); err == nil && len(txs) > 0 {
+			res := &protobuf.TxsResponse{}
+			res.Txs = make([]*protobuf.TxDetailResponse, len(txs))
+			for i, tx := range txs {
+				res.Txs[i] = tx.ToTxDetailResponse()
+			}
+			json.NewEncoder(w).Encode(res)
+			return
+		}
+	}
+
+	srv := TxService{}
+	txResp, err := srv.GetRedeemTxsByBlockNumber(blockNumber, net, env)
 	if err != nil {
 		json.NewEncoder(w).Encode(err.Error())
 		return
@@ -444,6 +499,27 @@ func (t *TxService) GetLockedTxsByBlockNumber(blockNumber int64, net *network.Ne
 
 	switch msg := res.(type) {
 	case *protobuf.TxLockedResponse:
+		return msg, nil
+	}
+	return nil, nil
+}
+
+// GetRedeemTxsByBlockNumber ...
+func (t *TxService) GetRedeemTxsByBlockNumber(blockNumber int64, net *network.Network, env string) (*protobuf.TxRedeemResponse, error) {
+	configuration := config.GetConfiguration(env)
+	supervisorAddress := configuration.GetSupervisorAddress()
+	ctx := network.WithSignMessage(context.Background(), true)
+	supervisorNode, err := net.Client(supervisorAddress)
+
+	req := &protobuf.TxRedeemRequest{BlockNumber: blockNumber}
+
+	res, err := supervisorNode.Request(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get locked txs due to: %v", err)
+	}
+
+	switch msg := res.(type) {
+	case *protobuf.TxRedeemResponse:
 		return msg, nil
 	}
 	return nil, nil

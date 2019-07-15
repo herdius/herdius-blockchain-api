@@ -156,6 +156,28 @@ WHERE
 	sender_address = $2
 `
 
+const txSelectByLockBlockHeight = `
+SELECT
+	id,
+	sender_address,
+	sender_pubkey,
+	receiver_address,
+	category,
+	symbol,
+	network,
+	value,
+	locked_amount,
+	nonce,
+	message,
+	sign,
+	status,
+	block_id,
+	created_date
+FROM "transaction"
+WHERE
+block_id = $2 AND lower("type") = lower($1)
+`
+
 // Store wraps *sqlx.DB
 type Store struct {
 	db *sqlx.DB
@@ -223,6 +245,15 @@ func (s *Store) GetByAssetAndSender(asset, address string) ([]*store.Tx, error) 
 func (s *Store) GetByStatus(status string) ([]*store.Tx, error) {
 	var txs []*store.Tx
 	if err := s.db.Select(&txs, txSelectByStatusStmt, status); err != nil {
+		return nil, err
+	}
+	return txs, nil
+}
+
+// GetTxByTypeBlockHeight returns list of transaction filter by given block height.
+func (s *Store) GetTxByTypeBlockHeight(txType string, height uint64) ([]*store.Tx, error) {
+	var txs []*store.Tx
+	if err := s.db.Select(&txs, txSelectByLockBlockHeight, txType, height); err != nil {
 		return nil, err
 	}
 	return txs, nil

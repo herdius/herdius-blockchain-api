@@ -87,7 +87,6 @@ func GetBlockByHeight(w http.ResponseWriter, r *http.Request, net *network.Netwo
 		}
 		log.Info().Msgf("Processed for Block Height: %d", block.BlockHeight)
 		json.NewEncoder(w).Encode(block)
-
 	} else {
 		fmt.Fprint(w, "Block not found for block height: "+heightJSON)
 	}

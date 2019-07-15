@@ -158,3 +158,11 @@ message TxLockedRequest {
 message TxLockedResponse {
     repeated TxDetailResponse txs = 1;
 }
+
+message TxRedeemRequest {
+    int64 block_number = 1;
+}
+
+message TxRedeemResponse {
+    repeated TxDetailResponse txs = 1;
+}
