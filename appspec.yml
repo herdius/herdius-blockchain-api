@@ -9,10 +9,6 @@ permissions:
     pattern: "**"
     mode: 755
 hooks:
-  BeforeInstall:
-    - location: deployment/kill_old_server.sh
-      timeout: 10
-      runas: root
   AfterInstall:
      - location: deployment/start_server.sh
        timeout: 60
