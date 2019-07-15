@@ -11,7 +11,7 @@ func init() {
 }
 
 func Up00005(tx *sql.Tx) error {
-	if _, err := tx.Exec(`ALTER TABLE transaction ADD COLUMN "type" TYPE VARCHAR(64)`); err != nil {
+	if _, err := tx.Exec(`ALTER TABLE transaction ADD COLUMN "type" VARCHAR(64)`); err != nil {
 		return err
 	}
 	return nil
