@@ -10,6 +10,9 @@ permissions:
     mode: 755
 hooks:
   AfterInstall:
+     - location: deployment/migrate.sh
+       timeout: 60
+       runas: root
      - location: deployment/start_server.sh
        timeout: 60
        runas: root
