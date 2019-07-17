@@ -91,6 +91,39 @@ func PostTx(w http.ResponseWriter, r *http.Request, net *network.Network, env st
 		json.NewEncoder(w).Encode(newTxResponse)
 		return
 	}
+	if len(txRequest.Tx.Type) > 0 && strings.EqualFold(txRequest.Tx.Type, "lock") {
+		if len(txRequest.Tx.SenderAddress) == 0 ||
+			len(txRequest.Tx.Sign) == 0 ||
+			len(txRequest.Tx.RecieverAddress) == 0 ||
+			txRequest.Tx.Asset.Network == "" ||
+			txRequest.Tx.Asset.Nonce <= 0 ||
+			txRequest.Tx.Asset.LockedAmount < 0 {
+			log.Println("POST body did not include all required values")
+
+			json.NewEncoder(w).Encode("\nRequest missing data, POST body did not include all required values\n")
+			json.NewEncoder(w).Encode("\ntxreq:\n")
+			json.NewEncoder(w).Encode(txRequest)
+
+			return
+		}
+	}
+
+	if len(txRequest.Tx.Type) > 0 && strings.EqualFold(txRequest.Tx.Type, "redeem") {
+		if len(txRequest.Tx.SenderAddress) == 0 ||
+			len(txRequest.Tx.Sign) == 0 ||
+			len(txRequest.Tx.RecieverAddress) == 0 ||
+			txRequest.Tx.Asset.Network == "" ||
+			txRequest.Tx.Asset.Nonce <= 0 ||
+			txRequest.Tx.Asset.RedeemedAmount < 0 {
+			log.Println("POST body did not include all required values")
+
+			json.NewEncoder(w).Encode("\nRequest missing data, POST body did not include all required values\n")
+			json.NewEncoder(w).Encode("\ntxreq:\n")
+			json.NewEncoder(w).Encode(txRequest)
+
+			return
+		}
+	}
 
 	if len(txRequest.Tx.SenderAddress) == 0 ||
 		len(txRequest.Tx.Sign) == 0 ||

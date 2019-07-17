@@ -32,7 +32,7 @@ func GetConfiguration(env string) *detail {
 	if env != "staging" {
 		env = "dev"
 	}
-	log.Println("environment sourced from config:", env)
+	//log.Println("environment sourced from config:", env)
 	once.Do(func() {
 		dirname := os.Getenv("GOPATH")
 		viper.SetConfigName("config")                                                          // Config file name without extension

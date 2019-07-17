@@ -69,6 +69,7 @@ message Asset {
     uint64 external_nonce             = 9;
     uint64 external_block_height      = 10;
     uint64 locked_amount              = 11;
+    uint64 redeemed_amount            = 12;
 }
 
 message TxRequest {
