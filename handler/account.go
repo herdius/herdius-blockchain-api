@@ -11,7 +11,6 @@ import (
 	"github.com/herdius/herdius-blockchain-api/protobuf"
 	protoplugin "github.com/herdius/herdius-blockchain-api/protobuf"
 	"github.com/herdius/herdius-core/p2p/network"
-	"github.com/rs/zerolog/log"
 )
 
 // Account : Account Detail
@@ -116,7 +115,7 @@ func GetAccount(w http.ResponseWriter, r *http.Request, net *network.Network, en
 		}
 
 		if len(account.Address) > 0 {
-			log.Info().Msgf("Received Account detail for address: %s", account.Address)
+			//log.Info().Msgf("Received Account detail for address: %s", account.Address)
 			json.NewEncoder(w).Encode(account)
 		}
 	}

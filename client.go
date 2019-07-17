@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math"
 	"net/http"
 	"strings"
 
@@ -40,6 +41,10 @@ func main() {
 		postExternalTx(endpoint)
 	case "internal":
 		postTx(endpoint)
+	case "lock":
+		sendLockedTx(endpoint)
+	case "redeem":
+		sendRedeemTx(endpoint)
 	}
 
 }
@@ -48,8 +53,9 @@ func main() {
 // It randomly creates a private key and uses the same key to register HER account
 // Once the new HER Account is added, it will add a ETH address to new HER Account
 func performAllTxs(endpoint string) {
-
 	senderPrivKey := secp256k1.GenPrivKey()
+	pk64 := b64.StdEncoding.EncodeToString(senderPrivKey[:])
+	log.Println("Pk in B64: ", pk64)
 	senderAddress := senderPrivKey.PubKey().GetAddress()
 	var pubkeyBytes secp256k1.PubKeySecp256k1
 	sendPubKey := senderPrivKey.PubKey()
@@ -220,6 +226,154 @@ func performAllTxs(endpoint string) {
 			break
 		}
 	}
+
+}
+
+func sendLockedTx(endpoint string) {
+	pkBz, _ := b64.StdEncoding.DecodeString("galGfukw3C2vLKLeAJU5bO4gb7KbNQM6qMyiVoPKuow=")
+	var senderPrivKey secp256k1.PrivKeySecp256k1
+	copy(senderPrivKey[:], pkBz)
+	senderAddress := senderPrivKey.PubKey().GetAddress()
+	var pubkeyBytes secp256k1.PubKeySecp256k1
+	sendPubKey := senderPrivKey.PubKey()
+	pubkeyBytes = sendPubKey.(secp256k1.PubKeySecp256k1)
+
+	senderB64 := b64.StdEncoding.EncodeToString(pubkeyBytes[:])
+	log.Println("Account Address : " + senderAddress)
+	// Lock Ethereum Transaction to Mint HBTC
+	log.Println("\nLock Ethereum Transaction to Mint HBTC: ", senderAddress)
+	msg := "Locked my ether"
+	lockedValue := uint64(0.1 * math.Pow10(18))
+	rcvrAddrs := "Hx00000000000000000000000000000000"
+	lockedAsset := &protobuf.Asset{
+		Category:              "crypto",
+		Symbol:                "ETH",
+		Network:               "Herdius",
+		Value:                 0,
+		Fee:                   0,
+		Nonce:                 2,
+		LockedAmount:          lockedValue,
+		ExternalSenderAddress: "0xD8f647855876549d2623f52126CE40D053a2ef6A",
+	}
+	lockedTx := protobuf.Tx{
+		SenderAddress:   senderAddress,
+		SenderPubkey:    senderB64,
+		RecieverAddress: rcvrAddrs,
+		Message:         msg,
+		Type:            "lock",
+		Asset:           lockedAsset,
+	}
+	// Sign the transaction detail
+	lockedTxbBeforeSign, _ := json.Marshal(lockedTx)
+	fmt.Println("lockedTxbBeforeSign: ", string(lockedTxbBeforeSign))
+	lockedSignature, err := senderPrivKey.Sign(lockedTxbBeforeSign)
+	if err != nil {
+		log.Panic("Failed to sign: ", err)
+	}
+	lockedTx.Sign = b64.StdEncoding.EncodeToString(lockedSignature)
+	// Post tx to blockchain.
+	lockedTxReq := protobuf.TxRequest{
+		Tx: &lockedTx,
+	}
+	lockedTxJSON, err := json.Marshal(lockedTxReq)
+	if err != nil {
+		log.Fatalf("Failed to Marshal %v", err)
+	}
+	response, err := http.Post(endpoint+"/tx", "application/json", bytes.NewBuffer(lockedTxJSON))
+	if err != nil {
+		log.Fatalf("Failed to Marshal %v", err)
+	}
+	defer response.Body.Close()
+	if err != nil {
+		log.Fatalf("Failed to read http response %s.", err)
+	}
+
+	body, readErr := ioutil.ReadAll(response.Body)
+	if readErr != nil {
+		log.Println(fmt.Sprintf("Failed to read http response %s.", readErr))
+	}
+	var txResponse protobuf.TxResponse
+
+	jsonErr := json.Unmarshal(body, &txResponse)
+	if jsonErr != nil {
+		log.Fatalf("Failed to Unmarshal %s.", jsonErr)
+	}
+	log.Println(txResponse.TxId)
+	log.Println(txResponse.Status)
+}
+
+func sendRedeemTx(endpoint string) {
+	pkBz, _ := b64.StdEncoding.DecodeString("galGfukw3C2vLKLeAJU5bO4gb7KbNQM6qMyiVoPKuow=")
+	var senderPrivKey secp256k1.PrivKeySecp256k1
+	copy(senderPrivKey[:], pkBz)
+	senderAddress := senderPrivKey.PubKey().GetAddress()
+	var pubkeyBytes secp256k1.PubKeySecp256k1
+	sendPubKey := senderPrivKey.PubKey()
+	pubkeyBytes = sendPubKey.(secp256k1.PubKeySecp256k1)
+
+	senderB64 := b64.StdEncoding.EncodeToString(pubkeyBytes[:])
+	log.Println("Account Address : " + senderAddress)
+	// Lock Ethereum Transaction to Mint HBTC
+	log.Println("\nRedeem Ethereum Transaction to Burn HBTC: ", senderAddress)
+
+	msg := "Redeem my ether"
+	value := uint64(0.01 * math.Pow10(18))
+	rcvrAddrs := "Hx00000000000000000000000000000000"
+	redeemAsset := &protobuf.Asset{
+		Category:              "crypto",
+		Symbol:                "ETH",
+		Network:               "Herdius",
+		Value:                 0,
+		Fee:                   0,
+		Nonce:                 3,
+		RedeemedAmount:        value,
+		ExternalSenderAddress: "0xD8f647855876549d2623f52126CE40D053a2ef6A",
+	}
+	lockedTx := protobuf.Tx{
+		SenderAddress:   senderAddress,
+		SenderPubkey:    senderB64,
+		RecieverAddress: rcvrAddrs,
+		Message:         msg,
+		Type:            "redeem",
+		Asset:           redeemAsset,
+	}
+	// Sign the transaction detail
+	lockedTxbBeforeSign, _ := json.Marshal(lockedTx)
+	fmt.Println("lockedTxbBeforeSign: ", string(lockedTxbBeforeSign))
+	lockedSignature, err := senderPrivKey.Sign(lockedTxbBeforeSign)
+	if err != nil {
+		log.Panic("Failed to sign: ", err)
+	}
+	lockedTx.Sign = b64.StdEncoding.EncodeToString(lockedSignature)
+	// Post tx to blockchain.
+	lockedTxReq := protobuf.TxRequest{
+		Tx: &lockedTx,
+	}
+	lockedTxJSON, err := json.Marshal(lockedTxReq)
+	if err != nil {
+		log.Fatalf("Failed to Marshal %v", err)
+	}
+	response, err := http.Post(endpoint+"/tx", "application/json", bytes.NewBuffer(lockedTxJSON))
+	if err != nil {
+		log.Fatalf("Failed to Marshal %v", err)
+	}
+	defer response.Body.Close()
+	if err != nil {
+		log.Fatalf("Failed to read http response %s.", err)
+	}
+
+	body, readErr := ioutil.ReadAll(response.Body)
+	if readErr != nil {
+		log.Println(fmt.Sprintf("Failed to read http response %s.", readErr))
+	}
+	var txResponse protobuf.TxResponse
+
+	jsonErr := json.Unmarshal(body, &txResponse)
+	if jsonErr != nil {
+		log.Fatalf("Failed to Unmarshal %s.", jsonErr)
+	}
+	log.Println(txResponse.TxId)
+	log.Println(txResponse.Status)
 }
 
 func sendAccountRegisterTx(endpoint string) {
