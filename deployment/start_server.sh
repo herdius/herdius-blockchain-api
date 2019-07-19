@@ -19,8 +19,9 @@ if [[ -f "$pidfile" ]]; then
 fi
 
 # Wait api server quit
-sleep 3
+sleep 5
 
+export GO111MODULE=on
 go build -o ./api-server ./server/server.go
 ./api-server -env=staging > /var/log/herdius/herdius-blockchain-api/log/server.log 2>&1 </dev/null &
 
