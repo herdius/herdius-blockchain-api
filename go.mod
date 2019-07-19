@@ -8,11 +8,10 @@ require (
 	github.com/alecthomas/repr v0.0.0-20181024024818-d37bc2a10ba1 // indirect
 	github.com/golang/protobuf v1.3.2
 	github.com/gorilla/mux v1.7.3
-	github.com/herdius/herdius-core v0.0.0-20190715071955-2b4893ad1093
+	github.com/herdius/herdius-core v0.0.0-20190719035521-56a65c374450
 	github.com/jmoiron/sqlx v1.2.0
-	github.com/lib/pq v1.1.1
+	github.com/lib/pq v1.2.0
 	github.com/pressly/goose v2.6.0+incompatible
-	github.com/rs/zerolog v1.14.3
 	github.com/sergi/go-diff v1.0.0 // indirect
 	github.com/spf13/viper v1.4.0
 )
