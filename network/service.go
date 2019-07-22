@@ -5,14 +5,16 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/herdius/herdius-blockchain-api/config"
-	apiProtobuf "github.com/herdius/herdius-blockchain-api/protobuf"
+	"github.com/herdius/herdius-core/blockchain/protobuf"
 	"github.com/herdius/herdius-core/p2p/crypto"
 	keystore "github.com/herdius/herdius-core/p2p/key"
-
 	"github.com/herdius/herdius-core/p2p/log"
 	"github.com/herdius/herdius-core/p2p/network"
 	"github.com/herdius/herdius-core/p2p/types/opcode"
+	"github.com/herdius/herdius-core/types"
+
+	"github.com/herdius/herdius-blockchain-api/config"
+	apiProtobuf "github.com/herdius/herdius-blockchain-api/protobuf"
 )
 
 var builder *network.Builder
@@ -50,24 +52,27 @@ func networkBuilder(env string) *network.Builder {
 		PubKey:     pubKey,
 	}
 
-	opcode.RegisterMessageType(opcode.Opcode(1113), &apiProtobuf.BlockHeightRequest{})
-	opcode.RegisterMessageType(opcode.Opcode(1114), &apiProtobuf.BlockResponse{})
-	opcode.RegisterMessageType(opcode.Opcode(1115), &apiProtobuf.AccountRequest{})
-	opcode.RegisterMessageType(opcode.Opcode(1116), &apiProtobuf.AccountResponse{})
-	opcode.RegisterMessageType(opcode.Opcode(1117), &apiProtobuf.TxRequest{})
-	opcode.RegisterMessageType(opcode.Opcode(1118), &apiProtobuf.TxResponse{})
-	opcode.RegisterMessageType(opcode.Opcode(1119), &apiProtobuf.TxDetailRequest{})
-	opcode.RegisterMessageType(opcode.Opcode(1120), &apiProtobuf.TxDetailResponse{})
-	opcode.RegisterMessageType(opcode.Opcode(1121), &apiProtobuf.TxsByAddressRequest{})
-	opcode.RegisterMessageType(opcode.Opcode(1122), &apiProtobuf.TxsResponse{})
-	opcode.RegisterMessageType(opcode.Opcode(1123), &apiProtobuf.TxsByAssetAndAddressRequest{})
-	opcode.RegisterMessageType(opcode.Opcode(1124), &apiProtobuf.TxUpdateRequest{})
-	opcode.RegisterMessageType(opcode.Opcode(1125), &apiProtobuf.TxUpdateResponse{})
-	opcode.RegisterMessageType(opcode.Opcode(1126), &apiProtobuf.TxDeleteRequest{})
-	opcode.RegisterMessageType(opcode.Opcode(1127), &apiProtobuf.TxLockedRequest{})
-	opcode.RegisterMessageType(opcode.Opcode(1128), &apiProtobuf.TxLockedResponse{})
-	opcode.RegisterMessageType(opcode.Opcode(1131), &apiProtobuf.TxRedeemRequest{})
-	opcode.RegisterMessageType(opcode.Opcode(1132), &apiProtobuf.TxRedeemResponse{})
+	opcode.RegisterMessageType(types.OpcodeBlockHeightRequest, &apiProtobuf.BlockHeightRequest{})
+	opcode.RegisterMessageType(types.OpcodeBlockResponse, &apiProtobuf.BlockResponse{})
+	opcode.RegisterMessageType(types.OpcodeAccountRequest, &apiProtobuf.AccountRequest{})
+	opcode.RegisterMessageType(types.OpcodeAccountResponse, &apiProtobuf.AccountResponse{})
+	opcode.RegisterMessageType(types.OpcodeTxRequest, &apiProtobuf.TxRequest{})
+	opcode.RegisterMessageType(types.OpcodeTxResponse, &apiProtobuf.TxResponse{})
+	opcode.RegisterMessageType(types.OpcodeTxDetailRequest, &apiProtobuf.TxDetailRequest{})
+	opcode.RegisterMessageType(types.OpcodeTxDetailResponse, &apiProtobuf.TxDetailResponse{})
+	opcode.RegisterMessageType(types.OpcodeTxsByAddressRequest, &apiProtobuf.TxsByAddressRequest{})
+	opcode.RegisterMessageType(types.OpcodeTxsResponse, &apiProtobuf.TxsResponse{})
+	opcode.RegisterMessageType(types.OpcodeTxsByAssetAndAddressRequest, &apiProtobuf.TxsByAssetAndAddressRequest{})
+	opcode.RegisterMessageType(types.OpcodeTxUpdateRequest, &apiProtobuf.TxUpdateRequest{})
+	opcode.RegisterMessageType(types.OpcodeTxUpdateResponse, &apiProtobuf.TxUpdateResponse{})
+	opcode.RegisterMessageType(types.OpcodeTxDeleteRequest, &apiProtobuf.TxDeleteRequest{})
+	opcode.RegisterMessageType(types.OpcodeTxLockedRequest, &apiProtobuf.TxLockedRequest{})
+	opcode.RegisterMessageType(types.OpcodeTxLockedResponse, &apiProtobuf.TxLockedResponse{})
+	opcode.RegisterMessageType(types.OpcodePing, &protobuf.Ping{})
+	opcode.RegisterMessageType(types.OpcodePong, &protobuf.Pong{})
+	opcode.RegisterMessageType(types.OpcodeTxRedeemRequest, &apiProtobuf.TxRedeemRequest{})
+	opcode.RegisterMessageType(types.OpcodeTxRedeemResponse, &apiProtobuf.TxRedeemResponse{})
+
 	builder := network.NewBuilder(env)
 	builder.SetKeys(keys)
 	builder.SetAddress(network.FormatAddress(configuration.TCP, configuration.SelfIP, uint16(configuration.ConnectionPort)))
