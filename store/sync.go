@@ -20,7 +20,7 @@ func SyncPendingTxs(s Storer, net *network.Network, env string) error {
 	}
 
 	ctx := network.WithSignMessage(context.Background(), true)
-	req := protobuf.TxsByBlockHeightRequest{BlockHeight: int64(blockID)}
+	req := protobuf.TxsByBlockHeightRequest{BlockHeight: int64(blockID) + 1}
 	res, err := supervisorNode.Request(ctx, &req)
 	if err != nil {
 		return fmt.Errorf("supervisorNode.Request: %v", err)
