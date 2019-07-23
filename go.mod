@@ -8,7 +8,7 @@ require (
 	github.com/alecthomas/repr v0.0.0-20181024024818-d37bc2a10ba1 // indirect
 	github.com/golang/protobuf v1.3.2
 	github.com/gorilla/mux v1.7.3
-	github.com/herdius/herdius-core v0.0.0-20190723064210-f00b87ba4e55
+	github.com/herdius/herdius-core v0.0.0-20190723092552-54979e949581
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/lib/pq v1.2.0
 	github.com/pressly/goose v2.6.0+incompatible

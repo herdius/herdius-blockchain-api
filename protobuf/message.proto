@@ -171,3 +171,5 @@ message TxRedeemResponse {
 message TxsByBlockHeightRequest {
     uint64 block_height = 1;
 }
+
+message LastBlockRequest {}

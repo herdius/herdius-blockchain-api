@@ -73,6 +73,7 @@ func networkBuilder(env string) *network.Builder {
 	opcode.RegisterMessageType(types.OpcodeTxRedeemRequest, &apiProtobuf.TxRedeemRequest{})
 	opcode.RegisterMessageType(types.OpcodeTxRedeemResponse, &apiProtobuf.TxRedeemResponse{})
 	opcode.RegisterMessageType(types.OpcodeTxsByBlockHeightRequest, &apiProtobuf.TxsByBlockHeightRequest{})
+	opcode.RegisterMessageType(types.OpcodeLastBlockRequest, &apiProtobuf.LastBlockRequest{})
 
 	builder := network.NewBuilder(env)
 	builder.SetKeys(keys)

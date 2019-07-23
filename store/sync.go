@@ -20,22 +20,22 @@ func SyncPendingTxs(s Storer, net *network.Network, env string) error {
 		return fmt.Errorf("s.GetLatestBlockID: %v", err)
 	}
 
-	for {
+	ctx := network.WithSignMessage(context.Background(), true)
+	req := protobuf.LastBlockRequest{}
+	msg, err := supervisorNode.Request(ctx, &req)
+	if err != nil {
+		log.Printf("failed to query last block info: %d\n", blockID)
+		return err
+	}
+
+	block, ok := msg.(*protobuf.BlockResponse)
+	if !ok {
+		log.Printf("block %d does not exist\n", blockID)
+		return nil
+	}
+
+	for blockID < block.GetBlockHeight() {
 		blockID++
-		ctx := network.WithSignMessage(context.Background(), true)
-		req := protobuf.BlockHeightRequest{BlockHeight: blockID}
-		msg, err := supervisorNode.Request(ctx, &req)
-		if err != nil {
-			log.Printf("failed to query block info: %d\n", blockID)
-			break
-		}
-
-		block, ok := msg.(*protobuf.BlockResponse)
-		if !ok || block.Time == nil {
-			log.Printf("block %d does not exist\n", blockID)
-			break
-		}
-
 		ctx = network.WithSignMessage(context.Background(), true)
 		txsReq := protobuf.TxsByBlockHeightRequest{BlockHeight: blockID}
 		res, err := supervisorNode.Request(ctx, &txsReq)
