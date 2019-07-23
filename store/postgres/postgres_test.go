@@ -72,8 +72,15 @@ func TestTx(t *testing.T) {
 	assert.Equal(t, 1, len(txs))
 	assert.Equal(t, "ETH", txs[0].Symbol)
 
-	txs, err = s.GetByBlockHeight(tx.BlockID)
+	blockID, err := s.GetLatestBlockID()
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(txs))
-	assert.Equal(t, "ETH", txs[0].Symbol)
+	assert.Equal(t, tx.BlockID, blockID)
+
+	tx.ID = "id3"
+	tx.BlockID = 10
+	assert.NoError(t, s.Save(tx))
+
+	blockID, err = s.GetLatestBlockID()
+	assert.NoError(t, err)
+	assert.Equal(t, tx.BlockID, blockID)
 }
