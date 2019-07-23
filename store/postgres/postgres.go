@@ -258,3 +258,13 @@ func (s *Store) GetTxByTypeBlockHeight(txType string, height uint64) ([]*store.T
 	}
 	return txs, nil
 }
+
+// GetLatestBlockID returns latest block id from saved transaction
+func (s *Store) GetLatestBlockID() (uint64, error) {
+	var blockID uint64
+	if err := s.db.Get(&blockID, `SELECT block_id FROM transaction ORDER BY block_id DESC LIMIT 1`); err != nil {
+		return 0, err
+	}
+
+	return blockID, nil
+}
