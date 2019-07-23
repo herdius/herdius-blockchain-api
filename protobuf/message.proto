@@ -167,3 +167,7 @@ message TxRedeemRequest {
 message TxRedeemResponse {
     repeated TxDetailResponse txs = 1;
 }
+
+message TxsByBlockHeightRequest {
+    int64 block_height = 1;
+}
