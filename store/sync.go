@@ -50,10 +50,9 @@ func SyncPendingTxs(s Storer, net *network.Network, env string) error {
 					continue
 				}
 				if err := s.Update(FromTxDetailResponse(tx)); err != nil {
-					return err
+					log.Printf("failed to save tx to database: %v - %v\n", tx, err)
 				}
 			}
-			return nil
 		}
 	}
 	return nil
