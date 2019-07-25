@@ -97,6 +97,8 @@ func LaunchServer() {
 					if err := store.SyncPendingTxs(db, net, env); err != nil {
 						log.Printf("failed to sync pending tx: %v", err)
 					}
+				} else {
+					log.Printf("not connected to core, skip sync pending txs")
 				}
 			}
 			time.Sleep(syncInterval)
