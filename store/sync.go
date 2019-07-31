@@ -10,8 +10,6 @@ import (
 	"github.com/herdius/herdius-core/p2p/network"
 )
 
-var lastEmptyBlock uint64
-
 // SyncPendingTxs syncs pending status with core
 func SyncPendingTxs(s Storer, net *network.Network, env string) error {
 	configuration := config.GetConfiguration(env)
@@ -21,14 +19,10 @@ func SyncPendingTxs(s Storer, net *network.Network, env string) error {
 	if err != nil {
 		return fmt.Errorf("s.GetLatestBlockID: %v", err)
 	}
-	// Init last empty block
-	if lastEmptyBlock == 0 {
-		lastEmptyBlock = blockID
-	}
 
-	// From second run, if blockID < lastEmptyBlock, we start at last empty block.
-	if blockID < lastEmptyBlock {
-		blockID = lastEmptyBlock
+	lastSyncBlockID := s.GetLastSyncBlockID()
+	if blockID < lastSyncBlockID {
+		blockID = lastSyncBlockID
 	}
 
 	ctx := network.WithSignMessage(context.Background(), true)
@@ -56,10 +50,6 @@ func SyncPendingTxs(s Storer, net *network.Network, env string) error {
 		}
 
 		if msg, ok := res.(*protobuf.TxsResponse); ok {
-			if len(msg.GetTxs()) == 0 {
-				// Save last empty block
-				lastEmptyBlock = blockID
-			}
 			for _, tx := range msg.GetTxs() {
 				if tx.Tx == nil {
 					continue
@@ -70,5 +60,10 @@ func SyncPendingTxs(s Storer, net *network.Network, env string) error {
 			}
 		}
 	}
+
+	if err := s.SaveLastSyncBlockID(block.GetBlockHeight()); err != nil {
+		log.Printf("failed to save last sync block id: %v", err)
+	}
+
 	return nil
 }
