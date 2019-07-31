@@ -84,3 +84,8 @@ func TestTx(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, tx.BlockID, blockID)
 }
+
+func TestLastSyncBlock(t *testing.T) {
+	assert.NoError(t, s.SaveLastSyncBlockID(10))
+	assert.Equal(t, uint64(10), s.GetLastSyncBlockID())
+}

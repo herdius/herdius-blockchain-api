@@ -268,3 +268,20 @@ func (s *Store) GetLatestBlockID() (uint64, error) {
 
 	return blockID, nil
 }
+
+// GetLastSyncBlockID returns last synced block id.
+func (s *Store) GetLastSyncBlockID() uint64 {
+	var blockID uint64
+	if err := s.db.Get(&blockID, `SELECT id FROM last_sync_block ORDER BY id DESC LIMIT 1`); err != nil {
+		println(err.Error())
+		return 0
+	}
+
+	return blockID
+}
+
+// SaveLastSyncBlockID save last synced block id to database.
+func (s *Store) SaveLastSyncBlockID(blockID uint64) error {
+	_, err := s.db.Exec(`UPDATE "last_sync_block" SET id = $1`, blockID)
+	return err
+}
