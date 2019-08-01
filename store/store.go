@@ -12,4 +12,6 @@ type Storer interface {
 	GetByStatus(status string) ([]*Tx, error)
 	GetTxByTypeBlockHeight(txType string, height uint64) ([]*Tx, error)
 	GetLatestBlockID() (uint64, error)
+	GetLastSyncBlockID() uint64
+	SaveLastSyncBlockID(blockID uint64) error
 }
