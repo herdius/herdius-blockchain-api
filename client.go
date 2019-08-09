@@ -123,6 +123,7 @@ func performAllTxs(endpoint string) {
 	log.Println("Retrieving new HER Account detail : ", senderAddress)
 	getURL := endpoint + "/account/" + senderAddress
 	log.Println("Get account url: ", getURL)
+	//time.Sleep(16 * time.Second)
 	for {
 		response, err = http.Get(getURL)
 		if err != nil {
@@ -142,7 +143,6 @@ func performAllTxs(endpoint string) {
 	}
 
 	log.Println("Register an ethereum address to created HER account: ", senderAddress)
-
 	asset = &protobuf.Asset{
 		Category:              "crypto",
 		Symbol:                "ETH",
@@ -200,6 +200,7 @@ func performAllTxs(endpoint string) {
 
 	log.Println("Retrieving new HER Account detail : ", senderAddress)
 	getURL = endpoint + "/account/" + senderAddress
+	//	time.Sleep(16 * time.Second)
 	log.Println("Get account url: ", getURL)
 	for {
 		response, err = http.Get(getURL)
@@ -561,7 +562,7 @@ func postTx(endpoint string) {
 	log.Println("Receiver Address: " + recAddress)
 
 	msg := "Send Her Token"
-	recAddress = "HHzAnaBq3f9rYbSMdun5bKKpYiq1Va6Hnt"
+	recAddress = "HFw2Qo2ZCaqxDqv8CsYmiczhuCz5UeGdXb"
 	if err != nil {
 		panic(err)
 	}
@@ -574,7 +575,7 @@ func postTx(endpoint string) {
 			//Value:    100,
 			Value: 500,
 			Fee:   1,
-			Nonce: uint64(239),
+			Nonce: uint64(5),
 		}
 
 		//sig = b64.StdEncoding.EncodeToString(sig)
@@ -603,7 +604,7 @@ func postTx(endpoint string) {
 			log.Fatalf("Failed to Marshal %v", err)
 		}
 
-		response, err := http.Post(endpoint, "application/json", bytes.NewBuffer(txJSON))
+		response, err := http.Post(endpoint+"/tx", "application/json", bytes.NewBuffer(txJSON))
 		if err != nil {
 			log.Fatalf("Failed to Marshal %v", err)
 		}
