@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+
 	"github.com/herdius/herdius-blockchain-api/config"
 	"github.com/herdius/herdius-blockchain-api/handler"
 	"github.com/herdius/herdius-blockchain-api/middleware"
@@ -20,6 +21,7 @@ import (
 	"github.com/herdius/herdius-blockchain-api/store"
 	"github.com/herdius/herdius-blockchain-api/store/postgres"
 	coreNet "github.com/herdius/herdius-core/p2p/network"
+	"github.com/herdius/herdius-core/p2p/network/discovery"
 )
 
 func main() {
@@ -40,6 +42,10 @@ func LaunchServer() {
 
 	env := *envFlag
 	builder := network.GetNetworkBuilder(env)
+
+	// Register peer discovery plugin.
+	builder.AddPlugin(new(discovery.Plugin))
+
 	net, err := builder.Build()
 	if err != nil {
 		log.Fatalf("Failed to build network:%v", err)
