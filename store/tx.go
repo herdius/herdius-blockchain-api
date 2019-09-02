@@ -53,6 +53,7 @@ func (tx *Tx) ToTxDetailResponse() *protobuf.TxDetailResponse {
 			LockedAmount: tx.LockedAmount,
 			Nonce:        tx.Nonce,
 		},
+		Type: tx.Type,
 	}
 
 	return txDetail
