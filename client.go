@@ -143,14 +143,16 @@ func performAllTxs(endpoint string) {
 	}
 
 	log.Println("Register an ethereum address to created HER account: ", senderAddress)
+
+	msg = "Add New Tezos Address"
 	asset = &protobuf.Asset{
 		Category:              "crypto",
-		Symbol:                "ETH",
+		Symbol:                "XTZ",
 		Network:               "Herdius",
 		Value:                 0,
 		Fee:                   0,
 		Nonce:                 1,
-		ExternalSenderAddress: "0xD8f647855876549d2623f52126CE40D053a2ef6A",
+		ExternalSenderAddress: "tz1WEKDqQrjP49KUBp27AKuzVC2fBv4veirm",
 	}
 
 	tx = protobuf.Tx{
@@ -405,12 +407,12 @@ func sendAccountRegisterTx(endpoint string) {
 
 	asset = &protobuf.Asset{
 		Category:              "crypto",
-		Symbol:                "ETH",
+		Symbol:                "XTZ",
 		Network:               "Herdius",
 		Value:                 0,
 		Fee:                   0,
 		Nonce:                 1,
-		ExternalSenderAddress: "0x9aA7E9819D781eFf5B239b572c4Fe8F964a899c9",
+		ExternalSenderAddress: "tz1WEKDqQrjP49KUBp27AKuzVC2fBv4veirm",
 	}
 
 	tx := protobuf.Tx{
