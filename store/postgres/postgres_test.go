@@ -43,6 +43,7 @@ func TestTx(t *testing.T) {
 		LockedAmount:    0,
 		Network:         "herdius",
 		CreationDT:      now,
+		Type:            "update",
 	}
 
 	assert.NoError(t, s.Save(tx))
