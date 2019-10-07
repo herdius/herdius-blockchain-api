@@ -27,6 +27,7 @@ type Tx struct {
 	BlockID         uint64    `db:"block_id"`
 	CreationDT      time.Time `db:"created_date"`
 	Type            string    `db:"type"`
+	Data            string    `db:"data"`
 }
 
 // ToTxDetailResponse converts a Tx to TxDetailResponse.
@@ -54,6 +55,7 @@ func (tx *Tx) ToTxDetailResponse() *protobuf.TxDetailResponse {
 			Nonce:        tx.Nonce,
 		},
 		Type: tx.Type,
+		Data: tx.Data,
 	}
 
 	return txDetail
@@ -78,5 +80,7 @@ func FromTxDetailResponse(txDetail *protobuf.TxDetailResponse) *Tx {
 	tx.Sign = txDetail.Tx.Sign
 	tx.BlockID = txDetail.BlockId
 	tx.Type = txDetail.Tx.Type
+	tx.Data = txDetail.Tx.Data
+
 	return tx
 }
