@@ -55,6 +55,7 @@ message Tx {
     string sign             = 6;
     string type             = 7;
     string status           = 8;
+    string data             = 9;
 }
 
 message Asset {
