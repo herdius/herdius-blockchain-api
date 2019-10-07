@@ -28,6 +28,7 @@ INSERT INTO "transaction" (
 	status,
 	block_id,
 	type,
+	data,
 	created_date
 ) VALUES (
 	:id,
@@ -45,6 +46,7 @@ INSERT INTO "transaction" (
 	:status,
 	:block_id,
 	:type,
+	:data,
 	:created_date
 )
 `
@@ -66,6 +68,7 @@ SELECT
 	status,
 	block_id,
 	type,
+	data,
 	created_date
 FROM "transaction"
 WHERE
@@ -89,6 +92,7 @@ SELECT
 	status,
 	block_id,
 	type,
+	data,
 	created_date
 FROM "transaction"
 WHERE
@@ -111,6 +115,7 @@ SELECT
 	status,
 	block_id,
 	type,
+	data,
 	created_date
 FROM "transaction"
 WHERE
@@ -133,6 +138,7 @@ UPDATE "transaction" SET
 	status = :status,
 	block_id = :block_id,
 	type = :type,
+	data = :data,
 	created_date = :created_date
 WHERE
 	id = :id
@@ -155,6 +161,7 @@ SELECT
 	status,
 	block_id,
 	type,
+	data,
 	created_date
 FROM "transaction"
 WHERE
@@ -180,6 +187,7 @@ SELECT
 	status,
 	block_id,
 	type,
+	data,
 	created_date
 FROM "transaction"
 WHERE

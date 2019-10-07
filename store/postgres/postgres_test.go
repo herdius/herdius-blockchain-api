@@ -44,6 +44,7 @@ func TestTx(t *testing.T) {
 		Network:         "herdius",
 		CreationDT:      now,
 		Type:            "update",
+		Data:            "mint(uint256)",
 	}
 
 	assert.NoError(t, s.Save(tx))
