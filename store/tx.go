@@ -66,7 +66,7 @@ func (tx *Tx) ToTxDetailResponse() *protobuf.TxDetailResponse {
 
 	if strings.EqualFold(tx.Type, "REGISTER") {
 		externalAddresses := txDetail.Tx.ExternalAddress
-		if externalAddresses == nil || len(externalAddresses) == 0 {
+		if externalAddresses == nil {
 			externalAddresses = make(map[string]string)
 		}
 		externalAddresses["ETH"] = tx.EthAddress
