@@ -1,6 +1,7 @@
 package store
 
 import (
+	"strings"
 	"time"
 
 	"github.com/herdius/herdius-blockchain-api/protobuf"
@@ -28,6 +29,11 @@ type Tx struct {
 	CreationDT      time.Time `db:"created_date"`
 	Type            string    `db:"type"`
 	Data            string    `db:"data"`
+	EthAddress      string    `db:"eth_address"`
+	BtcAddress      string    `db:"btc_address"`
+	LtcAddress      string    `db:"ltc_address"`
+	XtzAddress      string    `db:"xtz_address"`
+	BnbAddress      string    `db:"bnb_address"`
 }
 
 // ToTxDetailResponse converts a Tx to TxDetailResponse.
@@ -58,6 +64,18 @@ func (tx *Tx) ToTxDetailResponse() *protobuf.TxDetailResponse {
 		Data: tx.Data,
 	}
 
+	if strings.EqualFold(tx.Type, "REGISTER") {
+		externalAddresses := txDetail.Tx.ExternalAddress
+		if externalAddresses == nil || len(externalAddresses) == 0 {
+			externalAddresses = make(map[string]string)
+		}
+		externalAddresses["ETH"] = tx.EthAddress
+		externalAddresses["BTC"] = tx.BtcAddress
+		externalAddresses["LTC"] = tx.LtcAddress
+		externalAddresses["XTZ"] = tx.XtzAddress
+		externalAddresses["BNB"] = tx.BnbAddress
+	}
+
 	return txDetail
 }
 
@@ -81,6 +99,12 @@ func FromTxDetailResponse(txDetail *protobuf.TxDetailResponse) *Tx {
 	tx.BlockID = txDetail.BlockId
 	tx.Type = txDetail.Tx.Type
 	tx.Data = txDetail.Tx.Data
-
+	if strings.EqualFold(txDetail.Tx.Type, "REGISTER") {
+		tx.EthAddress = txDetail.Tx.ExternalAddress["ETH"]
+		tx.BtcAddress = txDetail.Tx.ExternalAddress["BTC"]
+		tx.LtcAddress = txDetail.Tx.ExternalAddress["LTC"]
+		tx.XtzAddress = txDetail.Tx.ExternalAddress["XTZ"]
+		tx.BnbAddress = txDetail.Tx.ExternalAddress["BNB"]
+	}
 	return tx
 }
