@@ -69,9 +69,10 @@ func PostTx(w http.ResponseWriter, r *http.Request, net *network.Network, env st
 		json.NewEncoder(w).Encode("\nRequest invalid, Could not parse POST json data, invalid format, err:\n" + err.Error())
 		return
 	}
-
+	log.Printf("txRequest: %+v\n", txRequest)
 	// Check if tx type is account update
-	if len(txRequest.Tx.Type) > 0 && strings.EqualFold(txRequest.Tx.Type, "update") {
+	if len(txRequest.Tx.Type) > 0 && (strings.EqualFold(txRequest.Tx.Type, "update") ||
+		strings.EqualFold(txRequest.Tx.Type, "register")) {
 		if len(txRequest.Tx.SenderAddress) == 0 ||
 			len(txRequest.Tx.Sign) == 0 ||
 			len(txRequest.Tx.SenderPubkey) == 0 {
