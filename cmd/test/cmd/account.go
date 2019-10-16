@@ -29,7 +29,7 @@ var accountCmd = &cobra.Command{
 			nonce = account.Nonce + 1
 		}
 
-		cmdutil.RegisterAccount(senderPrivKey, accountType, nonce, "") //ETH/BTC
+		cmdutil.RegisterAccount(senderPrivKey, accountType, nonce, externalAddress) //ETH/BTC
 	},
 }
 

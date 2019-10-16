@@ -38,7 +38,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&endpoint, "endpoint", "https://api.herdius.com", "verbose output")
 	accountCmd.Flags().StringVarP(&accountType, "type", "t", "HER", "Account Type HER/BTC")
 	accountCmd.Flags().StringVarP(&accountSecret, "secret", "s", "", "Account Type HER/BTC")
-	accountCmd.Flags().StringVarP(&externalAddress, "externaladdress", "e", "0xD8f647855876549d2623f52126CE40D053a2ef6A", "External Address")
+	accountCmd.Flags().StringVarP(&externalAddress, "externaladdress", "e", "", "External Address")
 
 }
 
