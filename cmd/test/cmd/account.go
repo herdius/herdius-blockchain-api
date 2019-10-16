@@ -9,6 +9,7 @@ import (
 
 func init() {
 	rootCmd.AddCommand(accountCmd)
+	accountCmd.AddCommand(addressCmd)
 
 }
 
@@ -29,5 +30,15 @@ var accountCmd = &cobra.Command{
 		}
 
 		cmdutil.RegisterAccount(senderPrivKey, accountType, nonce, "") //ETH/BTC
+	},
+}
+
+var addressCmd = &cobra.Command{
+	Use:   "address",
+	Short: "Get Address using secret key",
+	Run: func(cmd *cobra.Command, args []string) {
+		senderPrivKey, _ := testutils.GetHERKeyPair(accountSecret)
+		log.Println("Address: ", senderPrivKey.PubKey().GetAddress())
+
 	},
 }

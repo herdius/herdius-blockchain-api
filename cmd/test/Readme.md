@@ -35,7 +35,21 @@ go run cmdtest.go transaction 2
 
 ```
 
-## Register  Account
+# Account
+
+# Get Address using Secret
+
+```
+go run cmdtest.go account address -s secretkey
+
+Output
+Address:  HSYxVdh3cW1MY56dLrQoHX2yAw7BtYgPSL
+
+```
+
+
+
+# Register Account
 
 -t is type of asset i.e HER/BTC/ETH all herdius supported account
 -s is secret key of the account 
