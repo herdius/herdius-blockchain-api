@@ -99,6 +99,11 @@ func FromTxDetailResponse(txDetail *protobuf.TxDetailResponse) *Tx {
 	tx.BlockID = txDetail.BlockId
 	tx.Type = txDetail.Tx.Type
 	tx.Data = txDetail.Tx.Data
+	tx.EthAddress = ""
+	tx.BtcAddress = ""
+	tx.LtcAddress = ""
+	tx.XtzAddress = ""
+	tx.BnbAddress = ""
 	if strings.EqualFold(txDetail.Tx.Type, "REGISTER") {
 		tx.EthAddress = txDetail.Tx.ExternalAddress["ETH"]
 		tx.BtcAddress = txDetail.Tx.ExternalAddress["BTC"]
