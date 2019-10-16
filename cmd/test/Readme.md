@@ -48,7 +48,6 @@ Address:  HSYxVdh3cW1MY56dLrQoHX2yAw7BtYgPSL
 ```
 
 
-
 # Register Account
 
 -t is type of asset i.e HER/BTC/ETH all herdius supported account
@@ -56,6 +55,17 @@ Address:  HSYxVdh3cW1MY56dLrQoHX2yAw7BtYgPSL
 
 ```
 go run cmdtest.go account -t BTC -s secretkey
+
+```
+
+# Register External Address
+
+-t is type of asset i.e HER/BTC/ETH all herdius supported account
+-s is secret key of the account 
+-e is External Account Address
+
+```
+go run cmdtest.go account  external -t BTC -s secretkey -e 
 
 ```
 

@@ -16,6 +16,7 @@ var (
 	endpoint         string
 	accountType      string
 	accountSecret    string
+	externalAddress  string
 
 	rootCmd = &cobra.Command{
 		Use:   "testher",
@@ -34,9 +35,10 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.herdius.yaml)")
 	rootCmd.PersistentFlags().StringVar(&masterAccountKey, "masteraccount", "ecja1TZR8pWr/5OI5j7km4eg+BXh+RB2oN1d4oo6yZE=", "verbose output")
-	rootCmd.PersistentFlags().StringVar(&endpoint, "endpoint", "http://localhost", "verbose output")
+	rootCmd.PersistentFlags().StringVar(&endpoint, "endpoint", "https://api.herdius.com", "verbose output")
 	accountCmd.Flags().StringVarP(&accountType, "type", "t", "HER", "Account Type HER/BTC")
 	accountCmd.Flags().StringVarP(&accountSecret, "secret", "s", "", "Account Type HER/BTC")
+	accountCmd.Flags().StringVarP(&externalAddress, "externaladdress", "e", "0xD8f647855876549d2623f52126CE40D053a2ef6A", "External Address")
 
 }
 
