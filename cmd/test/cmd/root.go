@@ -34,7 +34,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.herdius.yaml)")
-	rootCmd.PersistentFlags().StringVar(&masterAccountKey, "masteraccount", "ecja1TZR8pWr/5OI5j7km4eg+BXh+RB2oN1d4oo6yZE=", "verbose output")
+	rootCmd.PersistentFlags().StringVarP(&masterAccountKey, "masteraccount", "m", "ecja1TZR8pWr/5OI5j7km4eg+BXh+RB2oN1d4oo6yZE=", "verbose output")
 	rootCmd.PersistentFlags().StringVar(&endpoint, "endpoint", "https://api.herdius.com", "verbose output")
 	accountCmd.Flags().StringVarP(&accountType, "type", "t", "HER", "Account Type HER/BTC")
 	accountCmd.Flags().StringVarP(&accountSecret, "secret", "s", "", "Account Type HER/BTC")
