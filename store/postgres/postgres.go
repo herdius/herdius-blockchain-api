@@ -29,6 +29,11 @@ INSERT INTO "transaction" (
 	block_id,
 	type,
 	data,
+	eth_address,
+	btc_address,
+	ltc_address,
+	xtz_address,
+	bnb_address,
 	created_date
 ) VALUES (
 	:id,
@@ -47,6 +52,11 @@ INSERT INTO "transaction" (
 	:block_id,
 	:type,
 	:data,
+	:eth_address,
+	:btc_address,
+	:ltc_address,
+	:xtz_address,
+	:bnb_address,
 	:created_date
 )
 `
@@ -69,6 +79,11 @@ SELECT
 	block_id,
 	type,
 	data,
+	eth_address,
+	btc_address,
+	ltc_address,
+	xtz_address,
+	bnb_address,
 	created_date
 FROM "transaction"
 WHERE
@@ -93,6 +108,11 @@ SELECT
 	block_id,
 	type,
 	data,
+	eth_address,
+	btc_address,
+	ltc_address,
+	xtz_address,
+	bnb_address,
 	created_date
 FROM "transaction"
 WHERE
@@ -116,6 +136,11 @@ SELECT
 	block_id,
 	type,
 	data,
+	eth_address,
+	btc_address,
+	ltc_address,
+	xtz_address,
+	bnb_address,
 	created_date
 FROM "transaction"
 WHERE
@@ -139,6 +164,11 @@ UPDATE "transaction" SET
 	block_id = :block_id,
 	type = :type,
 	data = :data,
+	eth_address = :eth_address,
+	btc_address = :btc_address,
+	ltc_address = :ltc_address,
+	xtz_address = :xtz_address,
+	bnb_address = :bnb_address,
 	created_date = :created_date
 WHERE
 	id = :id
@@ -162,6 +192,11 @@ SELECT
 	block_id,
 	type,
 	data,
+	eth_address,
+	btc_address,
+	ltc_address,
+	xtz_address,
+	bnb_address,
 	created_date
 FROM "transaction"
 WHERE
@@ -188,6 +223,11 @@ SELECT
 	block_id,
 	type,
 	data,
+	eth_address,
+	btc_address,
+	ltc_address,
+	xtz_address,
+	bnb_address,
 	created_date
 FROM "transaction"
 WHERE

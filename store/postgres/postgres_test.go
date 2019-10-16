@@ -45,6 +45,11 @@ func TestTx(t *testing.T) {
 		CreationDT:      now,
 		Type:            "update",
 		Data:            "mint(uint256)",
+		EthAddress:      "ETH",
+		BtcAddress:      "BTC",
+		LtcAddress:      "LTC",
+		XtzAddress:      "XTZ",
+		BnbAddress:      "BNB",
 	}
 
 	assert.NoError(t, s.Save(tx))
