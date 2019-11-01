@@ -65,15 +65,12 @@ func (tx *Tx) ToTxDetailResponse() *protobuf.TxDetailResponse {
 	}
 
 	if strings.EqualFold(tx.Type, "REGISTER") {
-		externalAddresses := txDetail.Tx.ExternalAddress
-		if externalAddresses == nil {
-			externalAddresses = make(map[string]string)
-		}
-		externalAddresses["ETH"] = tx.EthAddress
-		externalAddresses["BTC"] = tx.BtcAddress
-		externalAddresses["LTC"] = tx.LtcAddress
-		externalAddresses["XTZ"] = tx.XtzAddress
-		externalAddresses["BNB"] = tx.BnbAddress
+		txDetail.Tx.ExternalAddress = make(map[string]string)
+		txDetail.Tx.ExternalAddress["ETH"] = tx.EthAddress
+		txDetail.Tx.ExternalAddress["BTC"] = tx.BtcAddress
+		txDetail.Tx.ExternalAddress["LTC"] = tx.LtcAddress
+		txDetail.Tx.ExternalAddress["XTZ"] = tx.XtzAddress
+		txDetail.Tx.ExternalAddress["BNB"] = tx.BnbAddress
 	}
 
 	return txDetail
