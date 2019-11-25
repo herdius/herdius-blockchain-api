@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -60,7 +59,7 @@ func (s *service) GetBlockByHeight(height uint64, net *network.Network, env stri
 func GetBlockByHeight(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
 	params := mux.Vars(r)
 	if len(params["height"]) == 0 {
-		json.NewEncoder(w).Encode("Request invalid, 'height' param missing\n")
+		newJSONEncoder(w).Encode("Request invalid, 'height' param missing\n")
 		return
 	}
 
@@ -86,7 +85,7 @@ func GetBlockByHeight(w http.ResponseWriter, r *http.Request, net *network.Netwo
 			StateRoot:         block.StateRoot,
 		}
 		log.Info().Msgf("Processed for Block Height: %d", block.BlockHeight)
-		json.NewEncoder(w).Encode(block)
+		newJSONEncoder(w).Encode(block)
 	} else {
 		fmt.Fprint(w, "Block not found for block height: "+heightJSON)
 	}
