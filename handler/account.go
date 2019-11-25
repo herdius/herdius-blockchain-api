@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -97,7 +96,7 @@ func (s *service) GetAccountByAddress(accAddr string, net *network.Network, env 
 func GetAccount(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
 	params := mux.Vars(r)
 	if len(params["address"]) == 0 {
-		json.NewEncoder(w).Encode("Request invalid, 'address' param missing\n")
+		newJSONEncoder(w).Encode("Request invalid, 'address' param missing\n")
 		return
 	}
 
@@ -106,17 +105,17 @@ func GetAccount(w http.ResponseWriter, r *http.Request, net *network.Network, en
 	srv := service{}
 	account, err := srv.GetAccountByAddress(address, net, env)
 	if err != nil {
-		json.NewEncoder(w).Encode("Failed to retrieve acount detail due to: " + err.Error())
+		newJSONEncoder(w).Encode("Failed to retrieve acount detail due to: " + err.Error())
 	} else {
 		if account == nil || len(account.Address) == 0 {
 			errMsg := "Please wait for block time of 15-30 seconds if account registration is requested otherwise accound details not found for address: "
-			json.NewEncoder(w).Encode(errMsg + address)
+			newJSONEncoder(w).Encode(errMsg + address)
 			return
 		}
 
 		if len(account.Address) > 0 {
 			//log.Info().Msgf("Received Account detail for address: %s", account.Address)
-			json.NewEncoder(w).Encode(account)
+			newJSONEncoder(w).Encode(account)
 		}
 	}
 }

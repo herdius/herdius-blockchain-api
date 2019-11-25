@@ -66,7 +66,7 @@ func PostTx(w http.ResponseWriter, r *http.Request, net *network.Network, env st
 	var txRequest protobuf.TxRequest
 	err := json.NewDecoder(r.Body).Decode(&txRequest)
 	if err != nil {
-		json.NewEncoder(w).Encode("\nRequest invalid, Could not parse POST json data, invalid format, err:\n" + err.Error())
+		newJSONEncoder(w).Encode("\nRequest invalid, Could not parse POST json data, invalid format, err:\n" + err.Error())
 		return
 	}
 	// Check if tx type is account update or register
@@ -75,9 +75,9 @@ func PostTx(w http.ResponseWriter, r *http.Request, net *network.Network, env st
 		if len(txRequest.Tx.SenderAddress) == 0 ||
 			len(txRequest.Tx.Sign) == 0 ||
 			len(txRequest.Tx.SenderPubkey) == 0 {
-			json.NewEncoder(w).Encode("\nRequest missing data, POST body did not include all required values\n")
-			json.NewEncoder(w).Encode("\ntxreq:\n")
-			json.NewEncoder(w).Encode(txRequest)
+			newJSONEncoder(w).Encode("\nRequest missing data, POST body did not include all required values\n")
+			newJSONEncoder(w).Encode("\ntxreq:\n")
+			newJSONEncoder(w).Encode(txRequest)
 			return
 		}
 		srv := service{}
@@ -85,10 +85,10 @@ func PostTx(w http.ResponseWriter, r *http.Request, net *network.Network, env st
 		newTxResponse, err := srv.PostTx(txRequest, net, env)
 
 		if err != nil {
-			json.NewEncoder(w).Encode(err.Error())
+			newJSONEncoder(w).Encode(err.Error())
 			return
 		}
-		json.NewEncoder(w).Encode(newTxResponse)
+		newJSONEncoder(w).Encode(newTxResponse)
 		return
 	}
 	if len(txRequest.Tx.Type) > 0 && strings.EqualFold(txRequest.Tx.Type, "lock") {
@@ -100,9 +100,9 @@ func PostTx(w http.ResponseWriter, r *http.Request, net *network.Network, env st
 			txRequest.Tx.Asset.LockedAmount < 0 {
 			log.Println("POST body did not include all required values")
 
-			json.NewEncoder(w).Encode("\nRequest missing data, POST body did not include all required values\n")
-			json.NewEncoder(w).Encode("\ntxreq:\n")
-			json.NewEncoder(w).Encode(txRequest)
+			newJSONEncoder(w).Encode("\nRequest missing data, POST body did not include all required values\n")
+			newJSONEncoder(w).Encode("\ntxreq:\n")
+			newJSONEncoder(w).Encode(txRequest)
 
 			return
 		}
@@ -117,9 +117,9 @@ func PostTx(w http.ResponseWriter, r *http.Request, net *network.Network, env st
 			txRequest.Tx.Asset.RedeemedAmount < 0 {
 			log.Println("POST body did not include all required values")
 
-			json.NewEncoder(w).Encode("\nRequest missing data, POST body did not include all required values\n")
-			json.NewEncoder(w).Encode("\ntxreq:\n")
-			json.NewEncoder(w).Encode(txRequest)
+			newJSONEncoder(w).Encode("\nRequest missing data, POST body did not include all required values\n")
+			newJSONEncoder(w).Encode("\ntxreq:\n")
+			newJSONEncoder(w).Encode(txRequest)
 
 			return
 		}
@@ -133,9 +133,9 @@ func PostTx(w http.ResponseWriter, r *http.Request, net *network.Network, env st
 		txRequest.Tx.Asset.Value < 0 {
 		log.Println("POST body did not include all required values")
 
-		json.NewEncoder(w).Encode("\nRequest missing data, POST body did not include all required values\n")
-		json.NewEncoder(w).Encode("\ntxreq:\n")
-		json.NewEncoder(w).Encode(txRequest)
+		newJSONEncoder(w).Encode("\nRequest missing data, POST body did not include all required values\n")
+		newJSONEncoder(w).Encode("\ntxreq:\n")
+		newJSONEncoder(w).Encode(txRequest)
 
 		return
 	}
@@ -143,9 +143,9 @@ func PostTx(w http.ResponseWriter, r *http.Request, net *network.Network, env st
 	newTxResponse, err := srv.PostTx(txRequest, net, env)
 
 	if err != nil {
-		json.NewEncoder(w).Encode(err.Error())
+		newJSONEncoder(w).Encode(err.Error())
 	} else {
-		json.NewEncoder(w).Encode(newTxResponse)
+		newJSONEncoder(w).Encode(newTxResponse)
 	}
 }
 
@@ -154,7 +154,7 @@ func PostTx(w http.ResponseWriter, r *http.Request, net *network.Network, env st
 func GetTx(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
 	params := mux.Vars(r)
 	if len(params["id"]) == 0 {
-		json.NewEncoder(w).Encode("Request invalid, 'id' param missing\n")
+		newJSONEncoder(w).Encode("Request invalid, 'id' param missing\n")
 		return
 	}
 
@@ -163,7 +163,7 @@ func GetTx(w http.ResponseWriter, r *http.Request, net *network.Network, env str
 	s := getStore(configuration.DBConnString())
 	if s != nil {
 		if tx, err := s.Get(id); err == nil {
-			json.NewEncoder(w).Encode(tx.ToTxDetailResponse())
+			newJSONEncoder(w).Encode(tx.ToTxDetailResponse())
 			return
 		}
 	}
@@ -171,9 +171,9 @@ func GetTx(w http.ResponseWriter, r *http.Request, net *network.Network, env str
 	srv := TxService{}
 	txDetailRes, err := srv.GetTx(id, net, env)
 	if err != nil {
-		json.NewEncoder(w).Encode("Failed to retrieve Tx detail for id: " + id)
+		newJSONEncoder(w).Encode("Failed to retrieve Tx detail for id: " + id)
 	} else {
-		json.NewEncoder(w).Encode(txDetailRes)
+		newJSONEncoder(w).Encode(txDetailRes)
 	}
 }
 
@@ -204,7 +204,7 @@ func (t *TxService) GetTx(id string, net *network.Network, env string) (*protobu
 func GetTxsByAddress(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
 	params := mux.Vars(r)
 	if len(params["address"]) == 0 {
-		json.NewEncoder(w).Encode("Request invalid, 'address' param missing\n")
+		newJSONEncoder(w).Encode("Request invalid, 'address' param missing\n")
 		return
 	}
 
@@ -218,7 +218,7 @@ func GetTxsByAddress(w http.ResponseWriter, r *http.Request, net *network.Networ
 			for i, tx := range txs {
 				res.Txs[i] = tx.ToTxDetailResponse()
 			}
-			json.NewEncoder(w).Encode(res)
+			newJSONEncoder(w).Encode(res)
 			return
 		}
 	}
@@ -227,17 +227,17 @@ func GetTxsByAddress(w http.ResponseWriter, r *http.Request, net *network.Networ
 
 	if err != nil {
 		log.Println(err.Error())
-		json.NewEncoder(w).Encode(err.Error())
+		newJSONEncoder(w).Encode(err.Error())
 	} else {
 		if len(txs.Txs) == 0 {
-			json.NewEncoder(w).Encode("No transactions found")
+			newJSONEncoder(w).Encode("No transactions found")
 		} else {
 			if s != nil {
 				for _, txDetail := range txs.Txs {
 					s.Save(store.FromTxDetailResponse(txDetail))
 				}
 			}
-			json.NewEncoder(w).Encode(txs.Txs)
+			newJSONEncoder(w).Encode(txs.Txs)
 		}
 	}
 }
@@ -271,11 +271,11 @@ func (t *TxService) GetTxsByAddress(address string, net *network.Network, env st
 func GetTxsByAssetAndAddress(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
 	params := mux.Vars(r)
 	if len(params["asset"]) == 0 {
-		json.NewEncoder(w).Encode("Request invalid, 'asset' param missing\n")
+		newJSONEncoder(w).Encode("Request invalid, 'asset' param missing\n")
 		return
 	}
 	if len(params["address"]) == 0 {
-		json.NewEncoder(w).Encode("Request invalid, 'address' param missing\n")
+		newJSONEncoder(w).Encode("Request invalid, 'address' param missing\n")
 		return
 	}
 
@@ -290,7 +290,7 @@ func GetTxsByAssetAndAddress(w http.ResponseWriter, r *http.Request, net *networ
 			for i, tx := range txs {
 				res.Txs[i] = tx.ToTxDetailResponse()
 			}
-			json.NewEncoder(w).Encode(res)
+			newJSONEncoder(w).Encode(res)
 			return
 		}
 	}
@@ -298,17 +298,17 @@ func GetTxsByAssetAndAddress(w http.ResponseWriter, r *http.Request, net *networ
 	txs, err := srv.GetTxsByAssetAndAddress(asset, address, net, env)
 
 	if err != nil {
-		json.NewEncoder(w).Encode(err.Error())
+		newJSONEncoder(w).Encode(err.Error())
 	} else {
 		if len(txs.Txs) == 0 {
-			json.NewEncoder(w).Encode("No transactions found")
+			newJSONEncoder(w).Encode("No transactions found")
 		} else {
 			if s != nil {
 				for _, txDetail := range txs.Txs {
 					s.Save(store.FromTxDetailResponse(txDetail))
 				}
 			}
-			json.NewEncoder(w).Encode(txs.Txs)
+			newJSONEncoder(w).Encode(txs.Txs)
 		}
 
 	}
@@ -344,14 +344,14 @@ func (t *TxService) GetTxsByAssetAndAddress(asset, address string, net *network.
 func PutUpdateTxByTxID(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
 	params := mux.Vars(r)
 	if len(params["id"]) == 0 {
-		json.NewEncoder(w).Encode("Request invalid, 'id' param missing\n")
+		newJSONEncoder(w).Encode("Request invalid, 'id' param missing\n")
 		return
 	}
 	id := params["id"]
 	var txRequest protobuf.TxUpdateRequest
 	err := json.NewDecoder(r.Body).Decode(&txRequest.Tx)
 	if err != nil {
-		json.NewEncoder(w).Encode("\nRequest invalid, Could not parse PUT json data, invalid format, err:\n" + err.Error())
+		newJSONEncoder(w).Encode("\nRequest invalid, Could not parse PUT json data, invalid format, err:\n" + err.Error())
 		return
 	}
 	txRequest.TxId = id
@@ -360,9 +360,9 @@ func PutUpdateTxByTxID(w http.ResponseWriter, r *http.Request, net *network.Netw
 	res, err := srv.PutUpdateTxByTxID(&txRequest, net, env)
 
 	if err != nil {
-		json.NewEncoder(w).Encode(err)
+		newJSONEncoder(w).Encode(err)
 	} else {
-		json.NewEncoder(w).Encode(res)
+		newJSONEncoder(w).Encode(res)
 	}
 }
 
@@ -405,7 +405,7 @@ func (t *TxService) PutUpdateTxByTxID(txRequest *protobuf.TxUpdateRequest, net *
 func DeleteTx(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
 	params := mux.Vars(r)
 	if len(params["id"]) == 0 {
-		json.NewEncoder(w).Encode("Request invalid, 'id' param missing\n")
+		newJSONEncoder(w).Encode("Request invalid, 'id' param missing\n")
 		return
 	}
 
@@ -424,13 +424,13 @@ func DeleteTx(w http.ResponseWriter, r *http.Request, net *network.Network, env 
 	res, err := supervisorNode.Request(ctx, req)
 	if err != nil {
 		log.Println("Failed to cancel tx: " + err.Error())
-		json.NewEncoder(w).Encode(fmt.Sprintf("Failed to cancel tx: %v", err))
+		newJSONEncoder(w).Encode(fmt.Sprintf("Failed to cancel tx: %v", err))
 	}
 
 	switch msg := res.(type) {
 	case *protobuf.TxUpdateResponse:
 		log.Printf("Tx Detail: %v", msg)
-		json.NewEncoder(w).Encode(msg)
+		newJSONEncoder(w).Encode(msg)
 	}
 }
 
@@ -438,13 +438,13 @@ func DeleteTx(w http.ResponseWriter, r *http.Request, net *network.Network, env 
 func GetLockedTxsByBlockNumber(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
 	params := mux.Vars(r)
 	if len(params["block_number"]) == 0 {
-		json.NewEncoder(w).Encode("Request invalid, 'block_number' param missing\n")
+		newJSONEncoder(w).Encode("Request invalid, 'block_number' param missing\n")
 		return
 	}
 
 	blockNumber, err := strconv.ParseInt(params["block_number"], 10, 64)
 	if err != nil {
-		json.NewEncoder(w).Encode("Request invalid, invalid 'block_number'\n")
+		newJSONEncoder(w).Encode("Request invalid, invalid 'block_number'\n")
 		return
 	}
 
@@ -457,7 +457,7 @@ func GetLockedTxsByBlockNumber(w http.ResponseWriter, r *http.Request, net *netw
 			for i, tx := range txs {
 				res.Txs[i] = tx.ToTxDetailResponse()
 			}
-			json.NewEncoder(w).Encode(res)
+			newJSONEncoder(w).Encode(res)
 			return
 		}
 	}
@@ -465,13 +465,13 @@ func GetLockedTxsByBlockNumber(w http.ResponseWriter, r *http.Request, net *netw
 	srv := TxService{}
 	txResp, err := srv.GetLockedTxsByBlockNumber(blockNumber, net, env)
 	if err != nil {
-		json.NewEncoder(w).Encode(err.Error())
+		newJSONEncoder(w).Encode(err.Error())
 		return
 	}
 	if txResp == nil {
-		json.NewEncoder(w).Encode("No locked transactions found in block")
+		newJSONEncoder(w).Encode("No locked transactions found in block")
 	} else {
-		json.NewEncoder(w).Encode(txResp.Txs)
+		newJSONEncoder(w).Encode(txResp.Txs)
 	}
 }
 
@@ -479,13 +479,13 @@ func GetLockedTxsByBlockNumber(w http.ResponseWriter, r *http.Request, net *netw
 func GetRedeemTxsByBlockNumber(w http.ResponseWriter, r *http.Request, net *network.Network, env string) {
 	params := mux.Vars(r)
 	if len(params["block_number"]) == 0 {
-		json.NewEncoder(w).Encode("Request invalid, 'block_number' param missing\n")
+		newJSONEncoder(w).Encode("Request invalid, 'block_number' param missing\n")
 		return
 	}
 
 	blockNumber, err := strconv.ParseInt(params["block_number"], 10, 64)
 	if err != nil {
-		json.NewEncoder(w).Encode("Request invalid, invalid 'block_number'\n")
+		newJSONEncoder(w).Encode("Request invalid, invalid 'block_number'\n")
 		return
 	}
 
@@ -498,7 +498,7 @@ func GetRedeemTxsByBlockNumber(w http.ResponseWriter, r *http.Request, net *netw
 			for i, tx := range txs {
 				res.Txs[i] = tx.ToTxDetailResponse()
 			}
-			json.NewEncoder(w).Encode(res)
+			newJSONEncoder(w).Encode(res)
 			return
 		}
 	}
@@ -506,13 +506,13 @@ func GetRedeemTxsByBlockNumber(w http.ResponseWriter, r *http.Request, net *netw
 	srv := TxService{}
 	txResp, err := srv.GetRedeemTxsByBlockNumber(blockNumber, net, env)
 	if err != nil {
-		json.NewEncoder(w).Encode(err.Error())
+		newJSONEncoder(w).Encode(err.Error())
 		return
 	}
 	if txResp == nil {
-		json.NewEncoder(w).Encode("No locked transactions found in block")
+		newJSONEncoder(w).Encode("No locked transactions found in block")
 	} else {
-		json.NewEncoder(w).Encode(txResp.Txs)
+		newJSONEncoder(w).Encode(txResp.Txs)
 	}
 }
 
