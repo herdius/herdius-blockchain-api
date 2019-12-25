@@ -29,6 +29,14 @@ func main() {
 	LaunchServer()
 }
 
+var (
+
+	db *postgres.Store
+	net *coreNet.Network
+	err error
+	connTest *middleware.Connected
+)
+
 // LaunchServer ...
 func LaunchServer() {
 	var (
@@ -46,7 +54,7 @@ func LaunchServer() {
 	// Register peer discovery plugin.
 	builder.AddPlugin(new(discovery.Plugin))
 
-	net, err := builder.Build()
+	net, err = builder.Build()
 	if err != nil {
 		log.Fatalf("Failed to build network:%v", err)
 	}
@@ -59,7 +67,7 @@ func LaunchServer() {
 	supervisorAdds := make([]string, 0)
 	supervisorAdds = append(supervisorAdds, supervisorAddr)
 
-	connTest := new(middleware.Connected)
+	connTest = new(middleware.Connected)
 	router := mux.NewRouter()
 	addRoutes(net, env, router)
 	router.Use(connTest.IsConnected)
@@ -88,7 +96,7 @@ func LaunchServer() {
 		defer wg.Done()
 
 		configuration := config.GetConfiguration(env)
-		db, err := postgres.NewStore(configuration.DBConnString())
+		db, err = postgres.NewStore(configuration.DBConnString())
 		if err != nil {
 			log.Printf("Failed to create store: %v", err)
 			return
