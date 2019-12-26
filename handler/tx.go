@@ -181,7 +181,7 @@ func GetTx(w http.ResponseWriter, r *http.Request, net *network.Network, env str
 		} else {
 			newJSONEncoder(w).Encode(txDetailRes)
 		}
-
+		return
 	}
 	if err != nil {
 		newJSONEncoder(w).Encode("Failed to retrieve Tx detail for id: " + id)
