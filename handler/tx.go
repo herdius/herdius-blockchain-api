@@ -175,6 +175,13 @@ func GetTx(w http.ResponseWriter, r *http.Request, net *network.Network, env str
 		if err := store.SyncPendingTxs(db, net, env); err != nil {
 			log.Printf("failed to sync pending tx: %v", err)
 		}
+		txDetailRes, err := srv.GetTx(id, net, env)
+		if err != nil {
+			newJSONEncoder(w).Encode("Failed to retrieve Tx detail for id: " + id)
+		} else {
+			newJSONEncoder(w).Encode(txDetailRes)
+		}
+
 	}
 	if err != nil {
 		newJSONEncoder(w).Encode("Failed to retrieve Tx detail for id: " + id)
